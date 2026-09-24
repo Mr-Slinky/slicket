@@ -64,12 +64,17 @@ I write Slicket's code myself, and I use AI (Claude Code) as a tutor and a peer 
 Rust concepts, reviews the code I write, writes documentation and writes commit messages. When I ask,
 it also writes a single function to a specification I give it.
 
-My work and the AI's work go in separate commits. The git author of each commit records whose work
-it contains: my name on my commits, and `Claude <noreply@anthropic.com>` on the AI's. I review every
-commit before it goes in, and I am the committer on all of them.
+Work happens on the `dev` branch, where my work and the AI's work go in separate commits. The git
+author of each commit records whose work it contains: my name on my commits, and
+`Claude <noreply@anthropic.com>` on the AI's. I review every commit before it goes in, and I am the
+committer on all of them.
 
-This command lists every commit that contains the AI's work:
+The `main` branch receives `dev` as squash merges, each one a single commit that combines the work
+since the last merge. `dev` therefore keeps the full record of who wrote what, and it stays
+alongside `main` for good.
+
+This command lists every commit on `dev` that contains the AI's work:
 
 ```
-git log --author=Claude
+git log dev --author=Claude
 ```
