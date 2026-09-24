@@ -944,10 +944,6 @@ name = "slicket-core"
 version = "0.1.0"
 
 [[package]]
-name = "slicket-showcase"
-version = "0.1.0"
-
-[[package]]
 name = "slicket-store"
 version = "0.1.0"
 dependencies = [
