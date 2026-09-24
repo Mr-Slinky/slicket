@@ -1,0 +1,49 @@
+# Cargo build output
+/target/
+debug/
+
+# Backup files written by rustfmt
+**/*.rs.bk
+
+# Debug symbols from MSVC builds on Windows
+*.pdb
+
+# Mutation testing output from cargo-mutants
+**/mutants.out*/
+
+# Coverage output
+*.profraw
+*.profdata
+lcov.info
+cobertura.xml
+tarpaulin-report.html
+
+# IDE and editor metadata
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+.fleet/
+.zed/
+*.swp
+*.swo
+*~
+
+# Claude Code settings local to one machine
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Operating system files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Environment files and logs
+.env
+.env.*
+!.env.example
+*.log
+
+docs/local/
