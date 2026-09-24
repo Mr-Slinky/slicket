@@ -28,7 +28,8 @@ components.
 
 ## Status
 
-Slicket is at an early design stage.
+Slicket is at an early design stage. The planned work, and the scope it currently covers, is tracked
+in [docs/TODO.md](docs/TODO.md).
 
 ## Building
 
