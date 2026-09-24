@@ -114,14 +114,15 @@ impl OrgCore {
 /// The `Entity<Org>` is the organisation's index in the ECS, while the `OrgKey` is the
 /// organisation's key in the database.
 ///
-/// Only code inside `slicket-core` can create an `OrgKey`. The number is a `u32`, which
-/// allows 4,294,967,296 organisations.
+/// Only code inside `slicket-core` can create an `OrgKey`. The number is an `i32`. This is a
+/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
+/// from 1 upwards. An `i32` therefore allows 2,147,483,647 organisations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct OrgKey(pub(crate) u32);
+pub struct OrgKey(pub(crate) i32);
 
 impl OrgKey {
     /// Returns the number that identifies this organisation.
-    pub fn get(self) -> u32 {
+    pub fn get(self) -> i32 {
         self.0
     }
 }
@@ -132,16 +133,17 @@ impl OrgKey {
 /// The `Entity<Person>` is the person's index in the ECS, while the `PersonKey` is the person's key
 /// in the database.
 ///
-/// Only code inside `slicket-core` can create a `PersonKey`. The number is a `u32`, which allows
-/// 4,294,967,296 people.
+/// Only code inside `slicket-core` can create a `PersonKey`. The number is an `i32`. This is a
+/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
+/// from 1 upwards. An `i32` therefore allows 2,147,483,647 people.
 ///
 /// [`Entity<Person>`]: crate::Entity
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PersonKey(pub(crate) u32);
+pub struct PersonKey(pub(crate) i32);
 
 impl PersonKey {
     /// Returns the number that identifies this person.
-    pub fn get(self) -> u32 {
+    pub fn get(self) -> i32 {
         self.0
     }
 }
