@@ -965,6 +965,15 @@ name = "slicket-core"
 version = "0.1.0"
 
 [[package]]
+name = "slicket-server"
+version = "0.1.0"
+dependencies = [
+ "dotenvy",
+ "slicket-store",
+ "tokio",
+]
+
+[[package]]
 name = "slicket-store"
 version = "0.1.0"
 dependencies = [

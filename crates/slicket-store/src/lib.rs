@@ -20,4 +20,4 @@
 //! The `ticket_status` table stores the statuses a ticket can be in, and every ticket refers to one
 //! of them through its `status_id` column.
 
-mod database;
+pub mod database;

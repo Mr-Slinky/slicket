@@ -20,7 +20,7 @@ use std::time::Duration;
 // ========================================================================================== \\
 
 /// The settings that [`init_pool`] uses to open a pool of Postgres connections.
-pub(crate) struct DbConfig {
+pub struct DbConfig {
     /// The connection URL, including the user and password.
     pub(crate) url: String,
     /// The largest number of connections the pool opens.
@@ -47,7 +47,7 @@ impl DbConfig {
     ///
     /// Returns `VarError::NotPresent` when `DATABASE_URL` is unset, and `VarError::NotUnicode`
     /// when its value is not valid Unicode.
-    pub(crate) fn from_env() -> Result<Self, std::env::VarError> {
+    pub fn from_env() -> Result<Self, std::env::VarError> {
         Ok(Self {
             url: std::env::var("DATABASE_URL")?,
             max_con: 10,
@@ -67,7 +67,7 @@ impl DbConfig {
 ///
 /// `PgPool` is cheap to clone, and every clone shares the same connections. A caller clones the
 /// pool to hand it to each task that needs the database.
-pub(crate) async fn init_pool(cfg: &DbConfig) -> Result<PgPool, sqlx::Error> {
+pub async fn init_pool(cfg: &DbConfig) -> Result<PgPool, sqlx::Error> {
     PgPoolOptions::new()
         .max_connections(cfg.max_con)
         .min_connections(cfg.min_con)
@@ -87,7 +87,7 @@ pub(crate) async fn init_pool(cfg: &DbConfig) -> Result<PgPool, sqlx::Error> {
 ///
 /// Returns a `MigrateError` when a migration fails, or when a file already applied has changed
 /// since sqlx applied it.
-pub(crate) async fn init_database(pool: &PgPool) -> Result<(), MigrateError> {
+pub async fn init_database(pool: &PgPool) -> Result<(), MigrateError> {
     sqlx::migrate!().run(pool).await
 }
 
