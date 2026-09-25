@@ -5,14 +5,14 @@
 # as well, which gives the next start an empty database.
 #
 # These credentials suit a local machine only. The matching connection URL is:
-#   postgres://slicket:secret@localhost:5432/slicket
+#   postgres://slinky:secret@localhost:5432/slicket
 
 services:
   postgres:
     image: postgres:17
-    container_name: slicket-db
+    container_name: slicket-dev-db
     environment:
-      POSTGRES_USER: slicket
+      POSTGRES_USER: slinky
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: slicket
     ports:
@@ -20,7 +20,7 @@ services:
     volumes:
       - slicket-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U slicket -d slicket"]
+      test: ["CMD-SHELL", "pg_isready -U slinky -d slicket"]
       interval: 5s
       timeout: 3s
       retries: 10
