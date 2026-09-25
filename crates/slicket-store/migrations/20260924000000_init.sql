@@ -11,7 +11,6 @@ CREATE TABLE person (
 
 CREATE TABLE ticket_status (
     status_id  INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    org_id     INTEGER NOT NULL REFERENCES org ON DELETE CASCADE,
     name       TEXT NOT NULL,
     UNIQUE (org_id, name)
 );
