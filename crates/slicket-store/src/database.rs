@@ -1,5 +1,7 @@
-use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
+use sqlx::migrate::MigrateError;
+use sqlx::postgres::PgPoolOptions;
+
 use std::time::Duration;
 
 pub(crate) struct DbConfig {
@@ -33,4 +35,8 @@ pub(crate) async fn init_pool(cfg: &DbConfig) -> Result<PgPool, sqlx::Error> {
         .max_lifetime(cfg.max_lifetime)
         .connect(&cfg.url)
         .await
+}
+
+pub(crate) async fn init_database(pool: &PgPool) -> Result<(), MigrateError> {
+    sqlx::migrate!().run(pool).await
 }
