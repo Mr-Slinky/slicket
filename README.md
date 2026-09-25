@@ -1,7 +1,8 @@
 # Slicket
 
-Slicket is a ticketing system written in Rust. A user launches an instance of Slicket and sets up an
-organisation and its employees. Those employees can then log tickets.
+Slicket is a ticketing system written in Rust. A tenant is the business that runs an instance of
+Slicket. The tenant sets up the organisations it serves and the people in each one. Those people can
+then log tickets.
 
 The name joins Slinky, my handle, with ticket.
 
