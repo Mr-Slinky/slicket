@@ -40,26 +40,16 @@ pub(crate) struct DbConfig {
     pub(crate) max_lifetime: Duration,
 }
 
-impl Default for DbConfig {
-    /// Returns the settings for the local development database that `docker-compose.yml` starts.
-    ///
-    /// | Field             | Value                                              |
-    /// |-------------------|----------------------------------------------------|
-    /// | `url`             | `postgres://slinky:secret@localhost:5432/slicket`  |
-    /// | `max_con`         | 10                                                 |
-    /// | `min_con`         | 3                                                  |
-    /// | `acquire_timeout` | 30 seconds                                         |
-    /// | `idle_timeout`    | 5 minutes                                          |
-    /// | `max_lifetime`    | 30 minutes                                         |
-    fn default() -> Self {
-        Self {
-            url: String::from("postgres://slinky:secret@localhost:5432/slicket"),
+impl DbConfig {
+    pub(crate) fn from_env() -> Result<Self, std::env::VarError> {
+        Ok(Self {
+            url: std::env::var("DATABASE_URL")?,
             max_con: 10,
             min_con: 3,
             acquire_timeout: Duration::from_secs(30),
             idle_timeout: Duration::from_secs(300),
             max_lifetime: Duration::from_secs(1800),
-        }
+        })
     }
 }
 
