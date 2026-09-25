@@ -20,38 +20,26 @@ use std::time::Duration;
 // ========================================================================================== \\
 
 /// The settings that [`init_pool`] uses to open a pool of Postgres connections.
-///
-/// | Field             | Type       | Sets                                                           |
-/// |-------------------|------------|----------------------------------------------------------------|
-/// | `url`             | `String`   | the connection URL, including the user and password            |
-/// | `max_con`         | `u32`      | the largest number of connections the pool opens               |
-/// | `min_con`         | `u32`      | the number of connections the pool keeps open when idle        |
-/// | `acquire_timeout` | `Duration` | how long a caller waits for a free connection                  |
-/// | `idle_timeout`    | `Duration` | how long a connection above `min_con` stays open while idle    |
-/// | `max_lifetime`    | `Duration` | the age at which the pool replaces a connection with a new one |
-///
-/// A caller waiting longer than `acquire_timeout` receives `sqlx::Error::PoolTimedOut`.
 pub(crate) struct DbConfig {
+    /// The connection URL, including the user and password.
     pub(crate) url: String,
+    /// The largest number of connections the pool opens.
     pub(crate) max_con: u32,
+    /// The number of connections the pool keeps open when idle.
     pub(crate) min_con: u32,
+    /// How long a caller waits for a free connection. A caller waiting longer receives
+    /// `sqlx::Error::PoolTimedOut`.
     pub(crate) acquire_timeout: Duration,
+    /// How long a connection above `min_con` stays open while idle.
     pub(crate) idle_timeout: Duration,
+    /// The age at which the pool replaces a connection with a new one.
     pub(crate) max_lifetime: Duration,
 }
 
 impl DbConfig {
     /// Builds a `DbConfig` whose `url` is the value of the `DATABASE_URL` environment variable.
     ///
-    /// The pool settings take fixed values:
-    ///
-    /// | Field             | Value      |
-    /// |-------------------|------------|
-    /// | `max_con`         | 10         |
-    /// | `min_con`         | 3          |
-    /// | `acquire_timeout` | 30 seconds |
-    /// | `idle_timeout`    | 5 minutes  |
-    /// | `max_lifetime`    | 30 minutes |
+    /// Every other field takes the fixed value that the body of `from_env` sets.
     ///
     /// `from_env` reads the environment of the running process alone. A program that keeps
     /// `DATABASE_URL` in a `.env` file loads that file into the environment before it calls
