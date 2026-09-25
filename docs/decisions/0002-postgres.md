@@ -8,9 +8,9 @@ decision-makers: Kheagen Haskins
 
 ## Context and Problem Statement
 
-Slicket stores organisations, the people in them, the ticket statuses each organisation defines,
-and the tickets those people raise. The data is relational: a ticket refers to a person and a
-status, and a person and a status each refer to an organisation. The schema is in third normal
+Slicket stores organisations, the people in them, the ticket statuses, and the tickets those people
+raise. The data is relational: a ticket refers to a person and a status, and a person refers to an
+organisation. The schema is in third normal
 form (3NF), so each fact is stored in one place and the tables refer to each other by key.
 
 Slicket needs a database that stores this schema and enforces its rules, such as a ticket that
@@ -50,8 +50,6 @@ therefore rolls back in full, and the database returns to the schema it had befo
 * Good, because the database enforces the schema's rules for every writer, whether that is
   Slicket's code or a person running SQL by hand.
 * Good, because a failed migration rolls back in full.
-* Good, because a trigger can enforce a rule that a foreign key alone cannot, such as a ticket
-  whose status belongs to the same organisation as the person who raised it.
 * Bad, because PostgreSQL has signed integer types alone. Every key type in `slicket-core` wraps a
   signed `i32` as a result, and a key allows 2,147,483,647 values where an unsigned `u32` would
   allow twice as many.

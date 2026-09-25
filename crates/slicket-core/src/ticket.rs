@@ -134,10 +134,6 @@ impl TicketKey {
 /// Only code inside `slicket-core` can create a `StatusKey`. The number is an `i32`. This is a
 /// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
 /// from 1 upwards. An `i32` therefore allows 2,147,483,647 statuses.
-///
-/// Each organisation keeps its own copy of the stock statuses, so the number of statuses grows with
-/// the number of organisations. An `i16` allows only 32,767 statuses across every organisation,
-/// which is why the key is an `i32`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct StatusKey(pub(crate) i32);
 

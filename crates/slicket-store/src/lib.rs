@@ -17,6 +17,7 @@
 //! `ClosedAt` is the `closed_at` column of `ticket`, and `Description` is its `description` column.
 //! A ticket has the component exactly when the column is not `NULL`.
 //!
-//! Each organisation defines its own ticket statuses in `ticket_status`.
+//! The `ticket_status` table stores the statuses a ticket can be in, and every ticket refers to one
+//! of them through its `status_id` column.
 
 mod database;
