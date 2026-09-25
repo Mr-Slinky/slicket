@@ -1,11 +1,11 @@
 //! Connects to the Postgres database and brings its schema up to date.
 //!
-//! A caller first builds a [`DbConfig`], usually from [`DbConfig::default`], and passes it to
-//! [`init_pool`]. The pool that `init_pool` returns then goes to [`init_database`], which applies
-//! every migration the database has yet to run.
+//! A caller first builds a [`DbConfig`] with [`DbConfig::from_env`] and passes it to [`init_pool`].
+//! The pool that `init_pool` returns then goes to [`init_database`], which applies every migration
+//! the database has yet to run.
 //!
 //! ```ignore
-//! let pool = init_pool(&DbConfig::default()).await?;
+//! let pool = init_pool(&DbConfig::from_env()?).await?;
 //! init_database(&pool).await?;
 //! ```
 
@@ -41,6 +41,24 @@ pub(crate) struct DbConfig {
 }
 
 impl DbConfig {
+    /// Builds a `DbConfig` whose `url` is the value of the `DATABASE_URL` environment variable.
+    ///
+    /// The pool settings take fixed values:
+    ///
+    /// | Field             | Value      |
+    /// |-------------------|------------|
+    /// | `max_con`         | 10         |
+    /// | `min_con`         | 3          |
+    /// | `acquire_timeout` | 30 seconds |
+    /// | `idle_timeout`    | 5 minutes  |
+    /// | `max_lifetime`    | 30 minutes |
+    ///
+    /// `from_env` reads the environment of the running process alone. A program that keeps
+    /// `DATABASE_URL` in a `.env` file loads that file into the environment before it calls
+    /// `from_env`.
+    ///
+    /// Returns `VarError::NotPresent` when `DATABASE_URL` is unset, and `VarError::NotUnicode`
+    /// when its value is not valid Unicode.
     pub(crate) fn from_env() -> Result<Self, std::env::VarError> {
         Ok(Self {
             url: std::env::var("DATABASE_URL")?,
