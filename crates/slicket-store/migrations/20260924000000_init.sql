@@ -36,3 +36,7 @@ CREATE TABLE ticket
     description TEXT,
     CHECK (closed_at IS NULL OR closed_at >= created_at)
 );
+
+CREATE INDEX person_org_id_idx ON person (org_id);
+CREATE INDEX ticket_status_id_idx ON ticket (status_id);
+CREATE INDEX ticket_raised_by_idx ON ticket (raised_by);
