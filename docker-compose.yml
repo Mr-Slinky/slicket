@@ -1,0 +1,29 @@
+# The local development database for Slicket.
+#
+# Start it with `docker compose up -d` and stop it with `docker compose down`. The data survives a
+# stop, because it lives in the `slicket-data` volume. `docker compose down -v` deletes the volume
+# as well, which gives the next start an empty database.
+#
+# These credentials suit a local machine only. The matching connection URL is:
+#   postgres://slinky:secret@localhost:5432/slicket
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: slicket-dev-db
+    environment:
+      POSTGRES_USER: slinky
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: slicket
+    ports:
+      - "5432:5432"
+    volumes:
+      - slicket-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U slinky -d slicket"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  slicket-data:

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/slicket-core", "crates/slicket-showcase"]
+members = ["crates/slicket-core", "crates/slicket-store"]
 
 [workspace.package]
 version = "0.1.0"

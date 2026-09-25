@@ -5,8 +5,12 @@ apart from its Java, Maven and Log4j2 sections. Cargo takes the place of Maven h
 
 ## Project
 
-Slicket is a ticketing system. A user launches an instance and sets up an organisation and its
-employees. The employees then log tickets.
+Slicket is a ticketing system. A tenant is the business that runs an instance of Slicket. The
+tenant sets up the organisations it serves and the people in each one. Those people then log
+tickets.
+
+An organisation is a customer of the tenant, and each person belongs to one organisation. An
+organisation owns nothing else in the schema.
 
 The inspiration is a well-known ITSM and PSA platform, which the README calls the holy ticketing
 system. The developer has used it for a long time and finds it complicated and unintuitive, so

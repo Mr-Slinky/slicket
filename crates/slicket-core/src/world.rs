@@ -60,19 +60,19 @@ impl<T> Entity<T> {
 /// Marks an [`Entity`] as a ticket, as in `Entity<Ticket>`.
 ///
 /// `Ticket` is a unit struct, which callers use only as the type parameter of an `Entity`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ticket;
 
 /// Marks an [`Entity`] as a person, such as an employee who raises a ticket, as in
 /// `Entity<Person>`.
 ///
 /// `Person` is a unit struct, which callers use only as the type parameter of an `Entity`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Person;
 
 /// Marks an [`Entity`] as an organisation, such as the one a person belongs to, as in
 /// `Entity<Org>`.
 ///
 /// `Org` is a unit struct, which callers use only as the type parameter of an `Entity`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Org;

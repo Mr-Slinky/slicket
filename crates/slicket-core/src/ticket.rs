@@ -116,29 +116,30 @@ impl TicketCore {
 /// The `Entity<Ticket>` is the ticket's index in the ECS, while the `TicketKey` is the ticket's key
 /// in the database.
 ///
-/// Only code inside `slicket-core` can create a `TicketKey`. The number is a `u32`, which allows
-/// 4,294,967,296 tickets.
+/// Only code inside `slicket-core` can create a `TicketKey`. The number is an `i32`. This is a
+/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
+/// from 1 upwards. An `i32` therefore allows 2,147,483,647 tickets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TicketKey(pub(crate) u32);
+pub struct TicketKey(pub(crate) i32);
 
 impl TicketKey {
     /// Returns the number that identifies this ticket.
-    pub fn get(self) -> u32 {
+    pub fn get(self) -> i32 {
         self.0
     }
 }
 
 /// A `StatusKey` is the key that identifies a ticket status in the database.
 ///
-/// Only code inside `slicket-core` can create a `StatusKey`. The number is a `u16`, which allows
-/// 65,536 statuses. This is a decision: a `u8` allows only 256, and a `u32` allows far more
-/// statuses than any organisation will define.
+/// Only code inside `slicket-core` can create a `StatusKey`. The number is an `i32`. This is a
+/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
+/// from 1 upwards. An `i32` therefore allows 2,147,483,647 statuses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct StatusKey(pub(crate) u16);
+pub struct StatusKey(pub(crate) i32);
 
 impl StatusKey {
     /// Returns the number that identifies this status.
-    pub fn get(self) -> u16 {
+    pub fn get(self) -> i32 {
         self.0
     }
 }
