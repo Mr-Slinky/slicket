@@ -33,5 +33,6 @@ CREATE TABLE ticket
     raised_by   INTEGER     NOT NULL REFERENCES person,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     closed_at   TIMESTAMPTZ,
-    description TEXT
+    description TEXT,
+    CHECK (closed_at IS NULL OR closed_at >= created_at)
 );
