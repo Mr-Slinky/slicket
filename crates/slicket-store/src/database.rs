@@ -40,3 +40,36 @@ pub(crate) async fn init_pool(cfg: &DbConfig) -> Result<PgPool, sqlx::Error> {
 pub(crate) async fn init_database(pool: &PgPool) -> Result<(), MigrateError> {
     sqlx::migrate!().run(pool).await
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Runs `init_database` on an empty database and checks that it creates the four tables that
+    /// `init.sql` defines.
+    ///
+    /// `#[sqlx::test]` creates a fresh database for this test and drops it once the test passes.
+    /// `migrations = false` leaves that database empty when the test starts, so `init_database`
+    /// is the only code that can create the tables.
+    #[sqlx::test(migrations = false)]
+    async fn test_init_database_with_empty_db_creates_tables(pool: PgPool) {
+        // Arrange
+        let expected = ["org", "person", "ticket_status", "ticket"];
+
+        // Act
+        let result = init_database(&pool).await;
+        let found: Vec<String> = sqlx::query_scalar(
+            "SELECT table_name::text FROM information_schema.tables WHERE table_schema = 'public'",
+        )
+        .fetch_all(&pool)
+        .await
+        .expect("the table listing query should succeed");
+        let missing: Vec<&str> = expected.into_iter()
+                                         .filter(|table| !found.iter().any(|name| name == *table))
+                                         .collect();
+
+        // Assert
+        assert!(result.is_ok(), "init_database failed: {result:?}");
+        assert!(missing.is_empty(), "tables missing after migration: {missing:?}");
+    }
+}
