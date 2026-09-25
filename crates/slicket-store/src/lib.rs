@@ -18,3 +18,5 @@
 //! A ticket has the component exactly when the column is not `NULL`.
 //!
 //! Each organisation defines its own ticket statuses in `ticket_status`.
+
+mod database;
