@@ -117,6 +117,3 @@ lists every agent commit.
 
 A review suggestion that the developer applies in the code is the developer's work, so it goes in a
 developer commit.
-
-For this repository, these rules replace the global CLAUDE.md rule against AI attribution in
-commits. The message itself credits no one, and the `Co-Authored-By` trailer stays out.
