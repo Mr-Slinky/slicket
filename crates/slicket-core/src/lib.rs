@@ -21,6 +21,7 @@ pub mod world;
 
 pub use person::{OrgCore, OrgKey, PersonCore, PersonKey};
 pub use ticket::{
-    ClosedAt, Description, Priority, StatusKey, TicketCore, TicketKey, UnixEpochSeconds,
+    ClosedAt, Description, Priority, StatusKey, TicketCore, TicketKey, TicketTypeKey,
+    UnixEpochSeconds,
 };
 pub use world::{Entity, Org, Person, Ticket};
