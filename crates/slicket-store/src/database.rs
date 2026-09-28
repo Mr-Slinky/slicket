@@ -108,7 +108,14 @@ mod tests {
     #[sqlx::test(migrations = false)]
     async fn test_init_database_with_empty_db_creates_tables(pool: PgPool) {
         // Arrange
-        let expected = ["org", "person", "ticket_status", "ticket_type", "ticket"];
+        let expected = [
+            "org",
+            "tenant",
+            "person",
+            "ticket_status",
+            "ticket_type",
+            "ticket",
+        ];
 
         // Act
         let result = init_database(&pool).await;
@@ -118,12 +125,16 @@ mod tests {
         .fetch_all(&pool)
         .await
         .expect("the table listing query should succeed");
-        let missing: Vec<&str> = expected.into_iter()
-                                         .filter(|table| !found.iter().any(|name| name == *table))
-                                         .collect();
+        let missing: Vec<&str> = expected
+            .into_iter()
+            .filter(|table| !found.iter().any(|name| name == *table))
+            .collect();
 
         // Assert
         assert!(result.is_ok(), "init_database failed: {result:?}");
-        assert!(missing.is_empty(), "tables missing after migration: {missing:?}");
+        assert!(
+            missing.is_empty(),
+            "tables missing after migration: {missing:?}"
+        );
     }
 }

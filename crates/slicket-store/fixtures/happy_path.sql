@@ -1,10 +1,11 @@
-INSERT INTO org (name)
-VALUES ('Slinky IT');
-
-INSERT INTO tenant (org_id, name)
-SELECT org_id, name
-FROM org
-WHERE name = 'Slinky IT';
+WITH tenant_org AS (
+    INSERT INTO org (name)
+    VALUES ('Slinky IT')
+    RETURNING org_id
+)
+INSERT INTO tenant (org_id)
+SELECT org_id
+FROM tenant_org;
 
 INSERT INTO org (name)
 VALUES ('Harbourview Dental'),

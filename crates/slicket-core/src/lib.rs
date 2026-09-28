@@ -24,4 +24,4 @@ pub use ticket::{
     ClosedAt, Description, Priority, StatusKey, TicketCore, TicketKey, TicketTypeKey,
     UnixEpochSeconds,
 };
-pub use world::{Entity, Org, Person, Ticket};
+pub use world::{Entity, Org, Person, Tenant, Ticket};

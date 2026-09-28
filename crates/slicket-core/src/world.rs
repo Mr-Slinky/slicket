@@ -76,3 +76,18 @@ pub struct Person;
 /// `Org` is a unit struct, which callers use only as the type parameter of an `Entity`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Org;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Tenant {
+    org: Entity<Org>,
+}
+
+impl Tenant {
+    pub fn new(org: Entity<Org>) -> Self {
+        Self { org }
+    }
+
+    pub fn org(&self) -> Entity<Org> {
+        self.org
+    }
+}
