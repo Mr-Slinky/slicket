@@ -7,7 +7,7 @@ CREATE TABLE org
 CREATE TABLE tenant
 (
     tenant_id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (tenant_id),
-    org_id    INTEGER NOT NULL UNIQUE REFERENCES org
+    org_id    INTEGER NOT NULL REFERENCES org
 );
 
 CREATE TABLE person
