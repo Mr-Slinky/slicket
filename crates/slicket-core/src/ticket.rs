@@ -74,7 +74,7 @@ impl TicketCore {
     }
 
     /// Returns the `TicketTypeKey` of this ticket.
-    pub  fn type_key(&self) -> TicketTypeKey {
+    pub fn type_key(&self) -> TicketTypeKey {
         self.type_key
     }
 
@@ -148,7 +148,9 @@ pub struct TicketTypeKey(pub(crate) i32);
 
 impl TicketTypeKey {
     /// Returns the number that identifies this ticket type.
-    pub fn get(self) -> i32 { self.0 }
+    pub fn get(self) -> i32 {
+        self.0
+    }
 }
 
 /// A `StatusKey` is the key that identifies a ticket status in the database.
@@ -210,4 +212,3 @@ pub struct ClosedAt(pub UnixEpochSeconds);
 /// `Description` is an optional component, since a title is enough for some tickets.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Description(pub String);
-
