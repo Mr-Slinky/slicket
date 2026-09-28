@@ -37,6 +37,7 @@ use crate::world::{Entity, Person};
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TicketCore {
     ticket_key: TicketKey,
+    type_key: TicketTypeKey,
     status_key: StatusKey,
     priority: Priority,
     title: String,
@@ -48,6 +49,7 @@ impl TicketCore {
     /// Creates a `TicketCore` from the six fields that every ticket has.
     pub fn new(
         ticket_key: TicketKey,
+        type_key: TicketTypeKey,
         status_key: StatusKey,
         priority: Priority,
         title: String,
@@ -56,6 +58,7 @@ impl TicketCore {
     ) -> Self {
         Self {
             ticket_key,
+            type_key,
             status_key,
             priority,
             title,
@@ -67,6 +70,10 @@ impl TicketCore {
     /// Returns the `TicketKey` of this ticket.
     pub fn ticket_key(&self) -> TicketKey {
         self.ticket_key
+    }
+
+    pub  fn type_key(&self) -> TicketTypeKey {
+        self.type_key
     }
 
     /// Returns the `StatusKey` of this ticket.
@@ -129,6 +136,13 @@ impl TicketKey {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct TicketTypeKey(pub(crate) i32);
+
+impl TicketTypeKey {
+    pub fn get(self) -> i32 { self.0 }
+}
+
 /// A `StatusKey` is the key that identifies a ticket status in the database.
 ///
 /// Only code inside `slicket-core` can create a `StatusKey`. The number is an `i32`. This is a
@@ -188,3 +202,4 @@ pub struct ClosedAt(pub UnixEpochSeconds);
 /// `Description` is an optional component, since a title is enough for some tickets.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Description(pub String);
+
