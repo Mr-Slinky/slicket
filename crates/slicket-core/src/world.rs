@@ -6,13 +6,13 @@ use std::marker::PhantomData;
 
 /// An `Entity` identifies one object in Slicket's ECS, such as a ticket.
 ///
-/// Each `Entity` pairs an id with a generation. `Entity` derives `PartialEq`, so two values are
-/// equal when their ids match and their generations match.
+/// Each `Entity` pairs an id with a generation. `Entity` derives `PartialEq`, meaning two values
+/// are equal when their ids match and their generations match.
 ///
 /// The type parameter `T` is a marker type, such as [`Ticket`] or [`Person`], that states the kind
-/// of object the entity identifies. `Entity<Ticket>` and `Entity<Person>` are separate types, so
-/// the compiler rejects an `Entity<Ticket>` passed where an `Entity<Person>` is expected. `T`
-/// exists only at compile time, so creating an `Entity` never requires a value of `T`.
+/// of object the entity identifies. `Entity<Ticket>` and `Entity<Person>` are separate types. As a
+/// result, the compiler rejects an `Entity<Ticket>` passed where an `Entity<Person>` is expected.
+/// `T` exists only at compile time, so creating an `Entity` never requires a value of `T`.
 ///
 /// # Examples
 ///
@@ -82,7 +82,7 @@ pub struct Org;
 /// `Tenant` is an ECS resource. A resource is a single value that belongs to the whole world
 /// rather than to one entity, and an instance of Slicket has exactly one tenant.
 ///
-/// The tenant is also an organisation, so `Tenant` stores the [`Entity<Org>`] of that
+/// The tenant is also an organisation. `Tenant` therefore stores the [`Entity<Org>`] of that
 /// organisation. The tenant's name and other details are the components of that org.
 ///
 /// # Examples

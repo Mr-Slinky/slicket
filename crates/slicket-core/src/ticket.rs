@@ -32,9 +32,9 @@ use crate::world::{Entity, Person};
 /// Only code inside `slicket-core` can create a `TicketKey`, a `TicketTypeKey`, a `StatusKey` or a
 /// `Priority`. As such, only code inside `slicket-core` can create a `TicketCore`.
 ///
-/// `TicketCore` derives `Clone`, so a caller copies one with `.clone()`. The copy is explicit
-/// because `title` is a `String`, which owns memory on the heap. Two `TicketCore` values are equal
-/// when all seven fields are equal.
+/// `TicketCore` derives `Clone`. A caller therefore copies one with `.clone()`. The copy is
+/// explicit because `title` is a `String`, which owns memory on the heap. Two `TicketCore`
+/// values are equal when all seven fields are equal.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TicketCore {
     ticket_key: TicketKey,
@@ -171,11 +171,11 @@ impl StatusKey {
 /// A `Priority` sets how urgent a ticket is, as a number.
 ///
 /// Only code inside `slicket-core` can create a `Priority`. The number is a `u8`, which allows 256
-/// priority levels. A higher number means a more urgent ticket, so 0 is the lowest priority and
-/// `u8::MAX` (255) is the highest.
+/// priority levels. A higher number means a more urgent ticket. As a result, 0 is the lowest
+/// priority and `u8::MAX` (255) is the highest.
 ///
-/// `Priority` derives `Ord`, so a less urgent priority compares as less than a more urgent one.
-/// Sorting tickets by `Priority` therefore puts the least urgent ticket first.
+/// `Priority` derives `Ord`, meaning a less urgent priority compares as less than a more urgent
+/// one. Sorting tickets by `Priority` therefore puts the least urgent ticket first.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Priority(pub(crate) u8);
 
@@ -202,8 +202,8 @@ pub struct UnixEpochSeconds(pub u64);
 
 /// `ClosedAt` stores the time at which a ticket was closed.
 ///
-/// `ClosedAt` is an optional component, meant only for closed tickets. It derives `Ord`, so sorting
-/// closed tickets by `ClosedAt` puts the earliest closure first.
+/// `ClosedAt` is an optional component, meant only for closed tickets. Since it derives `Ord`,
+/// sorting closed tickets by `ClosedAt` puts the earliest closure first.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ClosedAt(pub UnixEpochSeconds);
 

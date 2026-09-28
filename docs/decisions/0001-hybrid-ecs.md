@@ -19,9 +19,9 @@ An Entity Component System (ECS) is one such model. In an ECS, every object is a
 entity is only an id. Components are plain data attached to entities. Systems are functions that
 run over every entity that has a given set of components.
 
-Games use an ECS for speed as well. An ECS lays components out in memory so that the CPU cache
-serves most reads, which matters to a game that draws at least 60 frames a second. A ticketing
-system answers requests as users make them, so its workload differs from a frame loop.
+Games use an ECS for speed as well. An ECS lays components out in memory to let the CPU cache serve
+most reads, which matters to a game that draws at least 60 frames a second. A ticketing
+system answers requests as users make them. As a result, its workload differs from a frame loop.
 
 ## Decision Drivers
 
@@ -55,11 +55,11 @@ Slicket departs from a pure ECS in two places.
    and `OrgCore`. This is a decision: every entity of a kind will have its core component. The
    code defines the core components today, and nothing yet checks that an entity has one.
 2. **A typed entity id per kind.** `Entity<T>` takes a marker type, `Ticket`, `Person` or `Org`,
-   as `T`. `Entity<Ticket>` and `Entity<Person>` are separate types, so the compiler rejects an
-   `Entity<Ticket>` passed where an `Entity<Person>` is expected. A pure ECS gives an entity no
+   as `T`. `Entity<Ticket>` and `Entity<Person>` are separate types. The compiler therefore rejects
+   an `Entity<Ticket>` passed where an `Entity<Person>` is expected. A pure ECS gives an entity no
    kind at all. Its kind there is whatever set of components it has at that moment. Slicket gives
-   each entity a kind, and the compiler checks it. The check covers the kind of the id alone, so
-   whether a given ticket has a `Description` is still a lookup at run time.
+   each entity a kind, and the compiler checks it. The check covers the kind of the id alone.
+   Whether a given ticket has a `Description` is still a lookup at run time.
 
 ### Consequences
 
@@ -88,7 +88,8 @@ optional data.
 Every piece of data is a component, and every entity shares one id type.
 
 * Good, because entities compose freely from components.
-* Bad, because every component is optional, so the model cannot promise that a ticket has a title.
+* Bad, because every component is optional. This means the model cannot promise that a ticket has
+  a title.
 * Bad, because a ticket's id and a person's id share one type, so the compiler accepts one where the
   other belongs.
 

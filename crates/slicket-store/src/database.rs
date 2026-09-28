@@ -103,8 +103,8 @@ mod tests {
     /// `expected`.
     ///
     /// `#[sqlx::test]` creates a fresh database for this test and drops it once the test passes.
-    /// `migrations = false` leaves that database empty when the test starts, so `init_database`
-    /// is the only code that can create the tables.
+    /// `migrations = false` leaves that database empty when the test starts, meaning
+    /// `init_database` is the only code that can create the tables.
     #[sqlx::test(migrations = false)]
     async fn test_init_database_with_empty_db_creates_tables(pool: PgPool) {
         // Arrange

@@ -13,8 +13,8 @@ An organisation is a customer of the tenant, and each person belongs to one orga
 organisation owns nothing else in the schema.
 
 The inspiration is a well-known ITSM and PSA platform, which the README calls the holy ticketing
-system. The developer has used it for a long time and finds it complicated and unintuitive, so
-Slicket aims to feel far better to use. The aim is a better experience rather than feature parity
+system. The developer has used it for a long time and finds it complicated and unintuitive. Slicket
+therefore aims to feel far better to use. The aim is a better experience rather than feature parity
 with the holy ticketing system. Agents refer to that platform by this nickname alone, in every file
 and every commit message.
 
@@ -105,8 +105,8 @@ commit records whose work it contains:
 
 An agent commits its own changes only after the developer has reviewed them and says to commit.
 Until then, the agent reports that the change is ready for review and stops. At commit time, the
-agent stages only the files it changed, each by name, so each commit contains one person's work.
-It also sets the author explicitly:
+agent stages only the files it changed, each by name, meaning each commit contains one person's
+work. It also sets the author explicitly:
 
 ```
 git commit --author="Claude <noreply@anthropic.com>" -m "docs: explain the Entity generation"
@@ -115,5 +115,5 @@ git commit --author="Claude <noreply@anthropic.com>" -m "docs: explain the Entit
 Git then records Claude as the author and the developer as the committer. `git log --author=Claude`
 lists every agent commit.
 
-A review suggestion that the developer applies in the code is the developer's work, so it goes in a
-developer commit.
+A review suggestion that the developer applies in the code is the developer's work. As such, it
+goes in a developer commit.

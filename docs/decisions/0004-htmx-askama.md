@@ -9,8 +9,8 @@ decision-makers: Kheagen Haskins
 ## Context and Problem Statement
 
 Slicket needs a frontend in the browser, where the people in each organisation log and follow their
-tickets. The `slicket-server` crate is the only part of Slicket that a browser can reach, so the
-frontend talks to it over HTTP.
+tickets. The `slicket-server` crate is the only part of Slicket that a browser can reach. The
+frontend therefore talks to it over HTTP.
 
 There are two broad ways to build that frontend. In the first, the server exposes a JSON API, and
 JavaScript in the browser builds the page from the data it receives. In the second, the server builds
@@ -26,8 +26,8 @@ result.
   want here".
 * Hand-rolled code. In the developer's words, "hand rolling is somewhat the point (within reason of
   course)".
-* One copy of the state. The server decides what a ticket looks like, so the browser keeps no second
-  copy that could fall out of step with it.
+* One copy of the state. The server decides what a ticket looks like. This means the browser keeps no
+  second copy that could fall out of step with it.
 * More of the work in Rust, since staying current with Rust is one of the project's goals.
 * Components that the frontend reuses across pages, such as a ticket row or a status badge.
 
@@ -58,12 +58,12 @@ both the ticket list and the ticket page render.
 
 ### Consequences
 
-* Good, because the server holds the only copy of the state, so the page always shows what the
+* Good, because the server holds the only copy of the state, meaning the page always shows what the
   server last decided.
 * Good, because the logic lives in Rust, and the browser runs htmx with no build step.
 * Good, because a mistake in a template is a compile error.
-* Good, because each HTML fragment serves exactly the page that uses it, so no endpoint has to suit
-  several clients.
+* Good, because each HTML fragment serves exactly the page that uses it. As a result, no endpoint has
+  to suit several clients.
 * Bad, because every interaction makes a round trip to the server. A highly interactive widget, such
   as a drag-and-drop board, suits this poorly. A single Web Component in that page can handle it.
 * Bad, because Slicket exposes no API for other programs. An integration, such as email-to-ticket or
@@ -88,7 +88,8 @@ The server renders HTML from templates, and htmx swaps the returned fragments in
 The server returns JSON, and the browser builds the page from custom elements that extend
 `HTMLElement`, with no library.
 
-* Good, because the browser provides the whole component model, so the frontend has no dependencies.
+* Good, because the browser provides the whole component model, leaving the frontend with no
+  dependencies.
 * Good, because the JSON API also serves other programs.
 * Bad, because each component updates the DOM by hand whenever its data changes.
 * Bad, because the browser keeps its own copy of the state, which the code has to keep in step with

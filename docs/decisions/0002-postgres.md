@@ -10,8 +10,8 @@ decision-makers: Kheagen Haskins
 
 Slicket stores organisations, the people in them, the ticket statuses, and the tickets those people
 raise. The data is relational: a ticket refers to a person and a status, and a person refers to an
-organisation. The schema is in third normal
-form (3NF), so each fact is stored in one place and the tables refer to each other by key.
+organisation. The schema is in third normal form (3NF), meaning each fact is stored in one place and
+the tables refer to each other by key.
 
 Slicket needs a database that stores this schema and enforces its rules, such as a ticket that
 refers to a person who exists.
