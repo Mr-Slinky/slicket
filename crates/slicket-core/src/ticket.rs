@@ -9,11 +9,12 @@ use crate::world::{Entity, Person};
 //                                         Public API                                         \\
 // ========================================================================================== \\
 
-/// `TicketCore` is the component that stores the six fields every ticket has.
+/// `TicketCore` is the component that stores the seven fields every ticket has.
 ///
 /// | Field        | Type                      | Stores                                   |
 /// |--------------|---------------------------|------------------------------------------|
 /// | `ticket_key` | [`TicketKey`]             | the ticket's key in the database         |
+/// | `type_key`   | [`TicketTypeKey`]         | the type of the ticket                   |
 /// | `status_key` | [`StatusKey`]             | the status the ticket is in              |
 /// | `priority`   | [`Priority`]              | how urgent the ticket is                 |
 /// | `title`      | `String`                  | the one-line summary of the ticket       |
@@ -23,17 +24,17 @@ use crate::world::{Entity, Person};
 /// Data that only some tickets have goes in separate components, such as [`ClosedAt`] and
 /// [`Description`].
 ///
-/// The fields are private. A caller sets all six at once through [`TicketCore::new`], then reads
+/// The fields are private. A caller sets all seven at once through [`TicketCore::new`], then reads
 /// each one through the method of the same name, such as [`TicketCore::priority`]. A caller
 /// changes `status_key`, `priority` and `title` afterwards through a setter, such as
-/// [`TicketCore::set_priority`]. The other three fields keep the values that `new` gave them.
+/// [`TicketCore::set_priority`]. The other four fields keep the values that `new` gave them.
 ///
-/// Only code inside `slicket-core` can create a `TicketKey`, a `StatusKey` or a `Priority`. As
-/// such, only code inside `slicket-core` can create a `TicketCore`.
+/// Only code inside `slicket-core` can create a `TicketKey`, a `TicketTypeKey`, a `StatusKey` or a
+/// `Priority`. As such, only code inside `slicket-core` can create a `TicketCore`.
 ///
 /// `TicketCore` derives `Clone`, so a caller copies one with `.clone()`. The copy is explicit
 /// because `title` is a `String`, which owns memory on the heap. Two `TicketCore` values are equal
-/// when all six fields are equal.
+/// when all seven fields are equal.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TicketCore {
     ticket_key: TicketKey,
@@ -46,7 +47,7 @@ pub struct TicketCore {
 }
 
 impl TicketCore {
-    /// Creates a `TicketCore` from the six fields that every ticket has.
+    /// Creates a `TicketCore` from the seven fields that every ticket has.
     pub fn new(
         ticket_key: TicketKey,
         type_key: TicketTypeKey,
@@ -72,6 +73,7 @@ impl TicketCore {
         self.ticket_key
     }
 
+    /// Returns the `TicketTypeKey` of this ticket.
     pub  fn type_key(&self) -> TicketTypeKey {
         self.type_key
     }
@@ -136,10 +138,16 @@ impl TicketKey {
     }
 }
 
+/// A `TicketTypeKey` is the key that identifies a ticket type in the database.
+///
+/// Only code inside `slicket-core` can create a `TicketTypeKey`. The number is an `i32`. This is a
+/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
+/// from 1 upwards. An `i32` therefore allows 2,147,483,647 ticket types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TicketTypeKey(pub(crate) i32);
 
 impl TicketTypeKey {
+    /// Returns the number that identifies this ticket type.
     pub fn get(self) -> i32 { self.0 }
 }
 
