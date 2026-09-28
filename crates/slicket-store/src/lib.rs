@@ -17,6 +17,10 @@
 //! `ClosedAt` is the `closed_at` column of `ticket`, and `Description` is its `description` column.
 //! A ticket has the component exactly when the column is not `NULL`.
 //!
+//! The `Tenant` resource is the one row of the `tenant` table. The table's primary key is a
+//! boolean that must be `true`, so the table accepts at most one row. That row's `org_id` column
+//! refers to the org that is the tenant.
+//!
 //! Two lookup tables store the values a ticket chooses from. Every ticket refers to one row in each.
 //!
 //! | Table           | Stores                          | Column on `ticket` |

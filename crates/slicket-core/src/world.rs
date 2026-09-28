@@ -77,16 +77,36 @@ pub struct Person;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Org;
 
+/// A `Tenant` is the business that runs this instance of Slicket.
+///
+/// `Tenant` is an ECS resource. A resource is a single value that belongs to the whole world
+/// rather than to one entity, and an instance of Slicket has exactly one tenant.
+///
+/// The tenant is also an organisation, so `Tenant` stores the [`Entity<Org>`] of that
+/// organisation. The tenant's name and other details are the components of that org.
+///
+/// # Examples
+///
+/// ```
+/// use slicket_core::{Entity, Org, Tenant};
+///
+/// let org: Entity<Org> = Entity::new(0, 0);
+/// let tenant = Tenant::new(org);
+///
+/// assert_eq!(tenant.org(), org);
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Tenant {
     org: Entity<Org>,
 }
 
 impl Tenant {
+    /// Creates the tenant whose details belong to the organisation `org`.
     pub fn new(org: Entity<Org>) -> Self {
         Self { org }
     }
 
+    /// Returns the `Entity<Org>` of the organisation that is the tenant.
     pub fn org(&self) -> Entity<Org> {
         self.org
     }
