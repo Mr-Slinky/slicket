@@ -99,8 +99,8 @@ pub async fn init_database(pool: &PgPool) -> Result<(), MigrateError> {
 mod tests {
     use super::*;
 
-    /// Runs `init_database` on an empty database and checks that it creates the four tables that
-    /// `init.sql` defines.
+    /// Runs `init_database` on an empty database and checks that it creates every table named in
+    /// `expected`.
     ///
     /// `#[sqlx::test]` creates a fresh database for this test and drops it once the test passes.
     /// `migrations = false` leaves that database empty when the test starts, so `init_database`
@@ -108,7 +108,7 @@ mod tests {
     #[sqlx::test(migrations = false)]
     async fn test_init_database_with_empty_db_creates_tables(pool: PgPool) {
         // Arrange
-        let expected = ["org", "person", "ticket_status", "ticket"];
+        let expected = ["org", "person", "ticket_status", "ticket_type", "ticket"];
 
         // Act
         let result = init_database(&pool).await;
