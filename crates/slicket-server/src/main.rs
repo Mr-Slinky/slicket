@@ -1,5 +1,5 @@
-//! The executable for Slicket. It will serve the API, and for now it runs code by hand against the
-//! local database.
+//! The executable for Slicket. It will serve the HTML pages of the frontend. For now, it connects
+//! to the local database and applies the migrations.
 
 use slicket_store::database::{DbConfig, init_database, init_pool};
 

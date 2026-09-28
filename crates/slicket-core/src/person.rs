@@ -115,8 +115,8 @@ impl OrgCore {
 /// organisation's key in the database.
 ///
 /// Only code inside `slicket-core` can create an `OrgKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
-/// from 1 upwards. An `i32` therefore allows 2,147,483,647 organisations.
+/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
+/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 organisations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct OrgKey(pub(crate) i32);
 
@@ -134,8 +134,8 @@ impl OrgKey {
 /// in the database.
 ///
 /// Only code inside `slicket-core` can create a `PersonKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
-/// from 1 upwards. An `i32` therefore allows 2,147,483,647 people.
+/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
+/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 people.
 ///
 /// [`Entity<Person>`]: crate::Entity
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

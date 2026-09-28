@@ -1,3 +1,9 @@
+//! The types that identify objects in the ECS, and the resources that belong to the whole world.
+//!
+//! [`Entity`] identifies one object. Its type parameter is one of the marker types [`Ticket`],
+//! [`Person`] or [`Org`], which states the kind of object the entity identifies. [`Tenant`] is a
+//! resource, which stores the organisation that runs this instance of Slicket.
+
 use std::marker::PhantomData;
 
 // ========================================================================================== \\
@@ -83,7 +89,7 @@ pub struct Org;
 /// rather than to one entity, and an instance of Slicket has exactly one tenant.
 ///
 /// The tenant is also an organisation. `Tenant` therefore stores the [`Entity<Org>`] of that
-/// organisation. The tenant's name and other details are the components of that org.
+/// organisation. The tenant's name and other details are the components of that organisation.
 ///
 /// # Examples
 ///

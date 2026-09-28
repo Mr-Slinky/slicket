@@ -126,8 +126,8 @@ impl TicketCore {
 /// in the database.
 ///
 /// Only code inside `slicket-core` can create a `TicketKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
-/// from 1 upwards. An `i32` therefore allows 2,147,483,647 tickets.
+/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
+/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 tickets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TicketKey(pub(crate) i32);
 
@@ -141,8 +141,8 @@ impl TicketKey {
 /// A `TicketTypeKey` is the key that identifies a ticket type in the database.
 ///
 /// Only code inside `slicket-core` can create a `TicketTypeKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
-/// from 1 upwards. An `i32` therefore allows 2,147,483,647 ticket types.
+/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
+/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 ticket types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TicketTypeKey(pub(crate) i32);
 
@@ -156,8 +156,8 @@ impl TicketTypeKey {
 /// A `StatusKey` is the key that identifies a ticket status in the database.
 ///
 /// Only code inside `slicket-core` can create a `StatusKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a Postgres `INTEGER`, which is signed, and numbers keys
-/// from 1 upwards. An `i32` therefore allows 2,147,483,647 statuses.
+/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
+/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 statuses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct StatusKey(pub(crate) i32);
 

@@ -1,4 +1,4 @@
-//! Connects to the Postgres database and brings its schema up to date.
+//! Connects to the PostgreSQL database and brings its schema up to date.
 //!
 //! A caller first builds a [`DbConfig`] with [`DbConfig::from_env`] and passes it to [`init_pool`].
 //! The pool that `init_pool` returns then goes to [`init_database`], which applies every migration
@@ -19,7 +19,7 @@ use std::time::Duration;
 //                                         Public API                                         \\
 // ========================================================================================== \\
 
-/// The settings that [`init_pool`] uses to open a pool of Postgres connections.
+/// The settings that [`init_pool`] uses to open a pool of PostgreSQL connections.
 pub struct DbConfig {
     /// The connection URL, including the user and password.
     pub(crate) url: String,
@@ -39,7 +39,15 @@ pub struct DbConfig {
 impl DbConfig {
     /// Builds a `DbConfig` whose `url` is the value of the `DATABASE_URL` environment variable.
     ///
-    /// Every other field takes the fixed value that the body of `from_env` sets.
+    /// Every other field takes a fixed value:
+    ///
+    /// | Field             | Value      |
+    /// |-------------------|------------|
+    /// | `max_con`         | 10         |
+    /// | `min_con`         | 3          |
+    /// | `acquire_timeout` | 30 seconds |
+    /// | `idle_timeout`    | 5 minutes  |
+    /// | `max_lifetime`    | 30 minutes |
     ///
     /// `from_env` reads the environment of the running process alone. A program that keeps
     /// `DATABASE_URL` in a `.env` file loads that file into the environment before it calls
@@ -59,11 +67,11 @@ impl DbConfig {
     }
 }
 
-/// Opens a pool of Postgres connections with the settings in `cfg`.
+/// Opens a pool of PostgreSQL connections with the settings in `cfg`.
 ///
 /// The pool opens its first connection before `init_pool` returns. A wrong URL, a wrong password
-/// or a database that is not running therefore fails here, with the `sqlx::Error` that Postgres or
-/// the network reported.
+/// or a database that is not running therefore fails here, with the `sqlx::Error` that
+/// PostgreSQL or the network reported.
 ///
 /// `PgPool` is cheap to clone, and every clone shares the same connections. A caller clones the
 /// pool to hand it to each task that needs the database.

@@ -1,9 +1,10 @@
-//! The persistence layer of Slicket, which saves the components of `slicket-core` to a Postgres
-//! database and loads them back.
+//! The persistence layer of Slicket. The goal of this crate is to save the components of
+//! `slicket-core` to a PostgreSQL database and load them back. For now, the [`database`] module
+//! connects to the database and applies the schema.
 //!
-//! The crate talks to Postgres through [sqlx](https://docs.rs/sqlx). The schema lives as plain SQL
-//! files in the `migrations` folder at the root of this crate. Each file is one migration, and sqlx
-//! applies them in the order of the timestamp at the start of each file name.
+//! The crate talks to PostgreSQL through [sqlx](https://docs.rs/sqlx). The schema lives as plain
+//! SQL files in the `migrations` folder at the root of this crate. Each file is one migration, and
+//! sqlx applies them in the order of the timestamp at the start of each file name.
 //!
 //! The schema maps each core component to a table of its own:
 //!
@@ -19,7 +20,7 @@
 //!
 //! The `Tenant` resource is the one row of the `tenant` table. The table's primary key is a
 //! boolean that must be `true`, so the table accepts at most one row. That row's `org_id` column
-//! refers to the org that is the tenant.
+//! refers to the organisation that is the tenant.
 //!
 //! Two lookup tables store the values a ticket chooses from. Every ticket refers to one row in each.
 //!
