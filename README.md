@@ -23,7 +23,7 @@ the holy ticketing system feature for feature.
 - Model the backend as an Entity Component System (ECS), both as a challenge and to learn how one
   works.
 
-In an ECS, every object in the system is an entity, and an entity is only an ID. Components are plain
+In an ECS, every object in the system is an entity, and an entity is only an id. Components are plain
 data attached to entities. Systems are functions that run over every entity with a given set of
 components.
 
@@ -32,17 +32,42 @@ components.
 Slicket is at an early design stage. The planned work, and the scope it currently covers, is tracked
 in [docs/TODO.md](docs/TODO.md).
 
+## Crates
+
+Slicket is a Cargo workspace, with each crate in its own folder under `crates/`.
+
+| Crate            | Contents                                                                  |
+|------------------|---------------------------------------------------------------------------|
+| `slicket-core`   | the ECS types: entity ids, components and resources                       |
+| `slicket-store`  | the PostgreSQL schema, and the code that connects to the database         |
+| `slicket-server` | the executable, which will serve the frontend that ADR 0004 describes     |
+
+The architecture decisions behind this layout are in [docs/decisions](docs/decisions/README.md).
+
 ## Building
 
-Slicket is a Cargo workspace, with each crate in its own folder under `crates/`. Building it needs a
-Rust toolchain that supports the 2024 edition, which means Rust 1.85 or later.
+Building Slicket needs a Rust toolchain that supports the 2024 edition, which means Rust 1.85 or
+later. The tests also need a running PostgreSQL database, which `docker-compose.yml` provides.
 
-These commands build and test every crate, run from the repository root:
+A developer sets up the database once, from the repository root. The first command copies the
+example environment file, which gives `DATABASE_URL` the address of the database that Docker
+starts. The second command starts that database in the background.
+
+```
+cp .env.example .env
+docker compose up -d
+```
+
+These commands then build and test every crate, run from the repository root:
 
 ```
 cargo build
 cargo test
 ```
+
+Each test that uses the database creates a fresh database of its own and drops it once the test
+passes. The `slicket` database therefore keeps whatever data a developer put in it. `docker compose down` stops the database, and
+`docker-compose.yml` describes the other commands.
 
 ## Conventions
 
@@ -58,6 +83,10 @@ The code uses one word for each.
 - A **key** is a primary or foreign key in the database. Each kind of key has its own type ending in
   `Key`, such as `TicketKey`. A field or getter that returns a key ends in `_key`, such as
   `TicketCore::ticket_key`.
+
+These two words govern Rust names alone. The database schema follows the usual SQL naming, meaning
+its key columns end in `_id`, such as `person.org_id`. That column stores the organisation's key,
+which the Rust code calls an `OrgKey`.
 
 ## Use of AI
 
