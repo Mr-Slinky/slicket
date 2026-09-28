@@ -22,10 +22,9 @@ result.
 
 ## Decision Drivers
 
-* A small frontend. The developer judged that "react is more than likely far too heavy for what we
-  want here".
-* Hand-rolled code. In the developer's words, "hand rolling is somewhat the point (within reason of
-  course)".
+* A small frontend. The developer judged React too heavy for what Slicket needs.
+* Hand-rolled code. The developer decided that writing the frontend by hand, within reason, is part
+  of the point of the project.
 * One copy of the state. The server decides what a ticket looks like. This means the browser keeps no
   second copy that could fall out of step with it.
 * More of the work in Rust, since staying current with Rust is one of the project's goals.
