@@ -1,5 +1,10 @@
-INSERT INTO tenant (name)
+INSERT INTO org (name)
 VALUES ('Slinky IT');
+
+INSERT INTO tenant (org_id, name)
+SELECT org_id, name
+FROM org
+WHERE name = 'Slinky IT';
 
 INSERT INTO org (name)
 VALUES ('Harbourview Dental'),
