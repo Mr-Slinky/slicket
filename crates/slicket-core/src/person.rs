@@ -150,10 +150,46 @@ impl PersonKey {
     }
 }
 
+/// An `Email` is a person's email address, checked when it is created.
+///
+/// The field is private, meaning [`Email::new`] is the only way to create an `Email`. As a result,
+/// every `Email` has passed the checks that `new` runs. A caller reads the address back through
+/// [`Email::as_str`].
+///
+/// The checks catch common typing mistakes. Only a message sent to the address proves that the
+/// address receives mail.
+///
+/// ```
+/// use slicket_core::person::{Email, EmailError};
+///
+/// let email = Email::new("  jane@example.com ").unwrap();
+/// assert_eq!(email.as_str(), "jane@example.com");
+///
+/// assert_eq!(Email::new("jane.example.com"), Err(EmailError::MissingAt));
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Email(String);
 
 impl Email {
+    /// Creates an `Email` from `email` once it passes every check.
+    ///
+    /// `new` first trims whitespace from both ends of `email`. The checks then run on the trimmed
+    /// address, in the order below, and `new` returns the variant of the first check that fails:
+    ///
+    /// | Check                                           | Fails with                         |
+    /// |-------------------------------------------------|------------------------------------|
+    /// | The address is at most 254 bytes long           | [`EmailError::TooLong`]            |
+    /// | The address is not empty                        | [`EmailError::Empty`]              |
+    /// | The address contains an `@`                     | [`EmailError::MissingAt`]          |
+    /// | Text comes before the last `@`                  | [`EmailError::EmptyLocalPart`]     |
+    /// | Text comes after the last `@`                   | [`EmailError::EmptyDomainPart`]    |
+    /// | The address contains no whitespace              | [`EmailError::HasWhitespace`]      |
+    /// | The domain has a dot, with text around each one | [`EmailError::DomainWithoutDot`]   |
+    ///
+    /// When every check passes, the returned `Email` stores the trimmed address.
+    ///
+    /// `new` splits the address at its last `@`. Therefore, `a@b@example.com` passes, with `a@b` as
+    /// the part before the `@`.
     pub fn new(email: &str) -> Result<Self, EmailError> {
         let email = email.trim();
 
@@ -188,19 +224,33 @@ impl Email {
         Ok(Self(email.to_owned()))
     }
 
+    /// Returns the email address as a string slice.
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
 }
 
+/// An `EmailError` is the reason [`Email::new`] rejected an address.
+///
+/// Each variant identifies one check that `new` runs. The `Display` implementation returns a
+/// message a person can read, such as "the email address has no @". `EmailError` also implements
+/// [`std::error::Error`], meaning the `?` operator can convert it into a `Box<dyn Error>`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EmailError {
+    /// The address is empty once trimmed.
     Empty,
+    /// The address is longer than 254 bytes once trimmed.
     TooLong,
+    /// The address contains no `@`.
     MissingAt,
+    /// The address has nothing before its last `@`.
     EmptyLocalPart,
+    /// The address has nothing after its last `@`.
     EmptyDomainPart,
+    /// The domain has no dot, or has an empty part between two dots or at either end, as in
+    /// `example..com` or `example.com.`.
     DomainWithoutDot,
+    /// The address contains whitespace between its first and last characters.
     HasWhitespace,
 }
 
