@@ -4,6 +4,8 @@
 //! every organisation has.
 
 use crate::{Entity, Org};
+use std::fmt;
+use std::fmt::{Display, Formatter};
 
 // ========================================================================================== \\
 //                                         Public API                                         \\
@@ -147,3 +149,74 @@ impl PersonKey {
         self.0
     }
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Email(String);
+
+impl Email {
+    pub fn new(email: &str) -> Result<Self, EmailError> {
+        let email = email.trim();
+
+        if email.len() > 254 {
+            return Err(EmailError::TooLong);
+        }
+
+        if email.is_empty() {
+            return Err(EmailError::Empty);
+        }
+
+        let Some((local, domain)) = email.rsplit_once('@') else {
+            return Err(EmailError::MissingAt);
+        };
+
+        if local.is_empty() {
+            return Err(EmailError::EmptyLocalPart);
+        }
+
+        if domain.is_empty() {
+            return Err(EmailError::EmptyDomainPart);
+        }
+
+        if email.contains(char::is_whitespace) {
+            return Err(EmailError::HasWhitespace);
+        }
+
+        if !domain.contains('.') || domain.split('.').any(str::is_empty) {
+            return Err(EmailError::DomainWithoutDot);
+        }
+
+        Ok(Self(email.to_owned()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EmailError {
+    Empty,
+    TooLong,
+    MissingAt,
+    EmptyLocalPart,
+    EmptyDomainPart,
+    DomainWithoutDot,
+    HasWhitespace,
+}
+
+impl Display for EmailError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let reason = match self {
+            Self::Empty => "the email address is empty",
+            Self::TooLong => "the email address is longer than 254 bytes",
+            Self::MissingAt => "the email address has no @",
+            Self::EmptyLocalPart => "the email address is empty before the @",
+            Self::EmptyDomainPart => "the email address is empty after the @",
+            Self::DomainWithoutDot => "the domain of the email address has no dot `.`",
+            Self::HasWhitespace => "the email address contains whitespace",
+        };
+        f.write_str(reason)
+    }
+}
+
+impl std::error::Error for EmailError {}
