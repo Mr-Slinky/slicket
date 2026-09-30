@@ -31,15 +31,17 @@ pub struct PersonCore {
     person_key: PersonKey,
     org_id: Entity<Org>,
     name: String,
+    email: Email,
 }
 
 impl PersonCore {
     /// Creates a `PersonCore` from the three fields that every person has.
-    pub fn new(person_key: PersonKey, org_id: Entity<Org>, name: String) -> Self {
+    pub fn new(person_key: PersonKey, org_id: Entity<Org>, name: String, email: Email) -> Self {
         Self {
             person_key,
             org_id,
             name,
+            email,
         }
     }
 
@@ -58,9 +60,8 @@ impl PersonCore {
         &self.name
     }
 
-    /// Sets the entity of the organisation this person belongs to.
-    pub fn set_org_id(&mut self, org_id: Entity<Org>) {
-        self.org_id = org_id;
+    pub fn email(&self) -> &Email {
+        &self.email
     }
 
     /// Sets the name of this person.
