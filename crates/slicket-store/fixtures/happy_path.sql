@@ -1,5 +1,6 @@
--- The happy path fixture fills a migrated database with a tenant and the organisations it serves.
--- The tenant is Slinky IT, and each organisation after it has its own set of people.
+-- The happy path fixture fills a migrated database with a tenant, the organisations it serves and
+-- the ticket types its staff set up. The tenant is Slinky IT, and each organisation after it has
+-- its own set of people.
 --
 -- Each organisation takes one statement. Its WITH block inserts the org row and returns the new
 -- org_id. The INSERT beneath it then gives that org_id to each of the organisation's people.
@@ -504,3 +505,13 @@ FROM makhumalo,
          ]
      ) WITH ORDINALITY AS staff (name, email, position)
 ORDER BY staff.position;
+
+INSERT
+INTO ticket_type (name)
+VALUES ('Incident'),
+       ('Service Request'),
+       ('Problem'),
+       ('Change'),
+       ('Question'),
+       ('Hardware & Peripherals'),
+       ('Onboarding');
