@@ -18,17 +18,17 @@ CREATE TABLE person
     email     TEXT    NOT NULL
 );
 
-CREATE TABLE ticket_status
-(
-    status_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name      TEXT NOT NULL,
-    UNIQUE (name)
-);
-
 CREATE TABLE ticket_type
 (
     ticket_type_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name           TEXT NOT NULL,
+    UNIQUE (name)
+);
+
+CREATE TABLE ticket_status
+(
+    status_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name      TEXT NOT NULL,
     UNIQUE (name)
 );
 
