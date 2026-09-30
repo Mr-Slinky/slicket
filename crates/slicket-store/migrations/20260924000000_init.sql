@@ -14,7 +14,8 @@ CREATE TABLE person
 (
     person_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     org_id    INTEGER NOT NULL REFERENCES org,
-    name      TEXT    NOT NULL
+    name      TEXT    NOT NULL,
+    email     TEXT    NOT NULL
 );
 
 CREATE TABLE ticket_status
@@ -45,7 +46,9 @@ CREATE TABLE ticket
     CHECK (closed_at IS NULL OR closed_at >= created_at)
 );
 
-CREATE INDEX person_org_id_idx ON person (org_id);
+CREATE INDEX person_org_id_idx    ON person (org_id);
 CREATE INDEX ticket_status_id_idx ON ticket (status_id);
 CREATE INDEX ticket_raised_by_idx ON ticket (raised_by);
-CREATE INDEX ticket_type_id_idx ON ticket (ticket_type_id);
+CREATE INDEX ticket_type_id_idx   ON ticket (ticket_type_id);
+
+CREATE UNIQUE INDEX person_email_idx ON person (lower(email));
