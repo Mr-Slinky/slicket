@@ -12,7 +12,8 @@
 //!   defines the [`Tenant`] resource, the business that runs this instance of Slicket.
 //! - [`ticket`] defines the components that describe a ticket, starting with [`TicketCore`].
 //! - [`person`] defines the components that describe a person and an organisation,
-//!   [`PersonCore`] and [`OrgCore`].
+//!   [`PersonCore`] and [`OrgCore`]. It also defines [`Email`], the checked email address
+//!   that a `PersonCore` stores.
 //!
 //! The crate root re-exports every public type, so a caller can write `slicket_core::TicketCore`
 //! in place of `slicket_core::ticket::TicketCore`.
@@ -21,7 +22,7 @@ pub mod person;
 pub mod ticket;
 pub mod world;
 
-pub use person::{OrgCore, OrgKey, PersonCore, PersonKey};
+pub use person::{Email, EmailError, OrgCore, OrgKey, PersonCore, PersonKey};
 pub use ticket::{
     ClosedAt, Description, Priority, StatusKey, TicketCore, TicketKey, TicketTypeKey,
     UnixEpochSeconds,

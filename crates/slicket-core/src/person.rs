@@ -1,7 +1,8 @@
 //! Components that describe a person and the organisation they belong to.
 //!
 //! [`PersonCore`] stores the fields that every person has, and [`OrgCore`] stores the fields that
-//! every organisation has.
+//! every organisation has. A person's email address is an [`Email`], which [`Email::new`] checks
+//! before it creates one.
 
 use crate::{Entity, Org};
 use std::fmt;
@@ -11,18 +12,19 @@ use std::fmt::{Display, Formatter};
 //                                         Public API                                         \\
 // ========================================================================================== \\
 
-/// `PersonCore` is the component that stores the three fields every person has.
+/// `PersonCore` is the component that stores the four fields every person has.
 ///
 /// | Field        | Type            | Stores                                 |
 /// |--------------|-----------------|----------------------------------------|
 /// | `person_key` | [`PersonKey`]   | the person's key in the database       |
 /// | `org_id`     | [`Entity<Org>`] | the organisation the person belongs to |
 /// | `name`       | `String`        | the person's name                      |
+/// | `email`      | [`Email`]       | the person's email address             |
 ///
-/// The fields are private. A caller sets all three at once through [`PersonCore::new`], then reads
+/// The fields are private. A caller sets all four at once through [`PersonCore::new`], then reads
 /// each one through the method of the same name, such as [`PersonCore::name`]. A caller changes
-/// `org_id` and `name` afterwards through [`PersonCore::set_org_id`] and [`PersonCore::set_name`].
-/// `person_key` keeps the value that `new` gave it.
+/// `name` afterwards through [`PersonCore::set_name`]. The other three fields keep the values that
+/// `new` gave them.
 ///
 /// Only code inside `slicket-core` can create a `PersonKey`. As such, only code inside
 /// `slicket-core` can create a `PersonCore`.
@@ -35,7 +37,7 @@ pub struct PersonCore {
 }
 
 impl PersonCore {
-    /// Creates a `PersonCore` from the three fields that every person has.
+    /// Creates a `PersonCore` from the four fields that every person has.
     pub fn new(person_key: PersonKey, org_id: Entity<Org>, name: String, email: Email) -> Self {
         Self {
             person_key,
@@ -60,6 +62,7 @@ impl PersonCore {
         &self.name
     }
 
+    /// Returns the email address of this person.
     pub fn email(&self) -> &Email {
         &self.email
     }
