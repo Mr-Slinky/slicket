@@ -24,7 +24,7 @@ pub mod world;
 
 pub use person::{Email, EmailError, OrgCore, OrgKey, PersonCore, PersonKey};
 pub use ticket::{
-    ClosedAt, Description, Priority, StatusKey, TicketCore, TicketKey, TicketTypeKey,
-    UnixEpochSeconds,
+    ClosedAt, Description, Priority, Status, StatusKey, TicketCore, TicketKey, TicketType,
+    TicketTypeKey, UnixEpochSeconds,
 };
-pub use world::{Entity, Org, Person, Tenant, Ticket};
+pub use world::{Entity, Key, KeyError, Org, Person, Tenant, Ticket};

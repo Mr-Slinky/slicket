@@ -4,6 +4,10 @@
 //! [`Person`] or [`Org`], which states the kind of object the entity identifies. [`Tenant`] is a
 //! resource, which stores the organisation that runs this instance of Slicket.
 
+use std::cmp::Ordering;
+use std::fmt;
+use std::fmt::{Debug, Display, Formatter};
+use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 
 // ========================================================================================== \\
@@ -31,7 +35,6 @@ use std::marker::PhantomData;
 /// assert_eq!(ticket.id(), 0);
 /// assert_eq!(raised_by.generation(), 0);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Entity<T> {
     pub(crate) id: u32,
     pub(crate) generation: u32,
@@ -63,24 +66,131 @@ impl<T> Entity<T> {
     }
 }
 
+impl<T> Clone for Entity<T> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<T> Copy for Entity<T> {}
+
+impl<T> PartialEq for Entity<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.generation == other.generation
+    }
+}
+
+impl<T> Eq for Entity<T> {}
+
+impl<T> PartialOrd for Entity<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<T> Ord for Entity<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        (self.id, self.generation).cmp(&(other.id, other.generation))
+    }
+}
+
+impl<T> Hash for Entity<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+        self.generation.hash(state);
+    }
+}
+
+impl<T> Debug for Entity<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Entity")
+            .field("id", &self.id)
+            .field("generation", &self.generation)
+            .finish()
+    }
+}
+
+pub struct Key<T> {
+    pub(crate) value: i32,
+    _kind: PhantomData<fn() -> T>,
+}
+
+impl<T> Key<T> {
+    pub fn get(self) -> i32 {
+        self.value
+    }
+}
+
+impl<T> TryFrom<i32> for Key<T> {
+    type Error = KeyError;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        if value >= 1 {
+            Ok(Self {
+                value,
+                _kind: PhantomData,
+            })
+        } else {
+            Err(KeyError(value))
+        }
+    }
+}
+
+impl<T> Clone for Key<T> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<T> Copy for Key<T> {}
+
+impl<T> PartialEq for Key<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value
+    }
+}
+
+impl<T> Eq for Key<T> {}
+
+impl<T> PartialOrd for Key<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<T> Ord for Key<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.value.cmp(&other.value)
+    }
+}
+
+impl<T> Hash for Key<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.value.hash(state);
+    }
+}
+
+impl<T> Debug for Key<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Key").field(&self.value).finish()
+    }
+}
+
 /// Marks an [`Entity`] as a ticket, as in `Entity<Ticket>`.
 ///
 /// `Ticket` is a unit struct, which callers use only as the type parameter of an `Entity`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Ticket;
 
 /// Marks an [`Entity`] as a person, such as an employee who raises a ticket, as in
 /// `Entity<Person>`.
 ///
 /// `Person` is a unit struct, which callers use only as the type parameter of an `Entity`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Person;
 
 /// Marks an [`Entity`] as an organisation, such as the one a person belongs to, as in
 /// `Entity<Org>`.
 ///
 /// `Org` is a unit struct, which callers use only as the type parameter of an `Entity`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Org;
 
 /// A `Tenant` is the business that runs this instance of Slicket.
@@ -117,3 +227,14 @@ impl Tenant {
         self.org
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct KeyError(pub(crate) i32);
+
+impl Display for KeyError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "the key {} is below 1", self.0)
+    }
+}
+
+impl std::error::Error for KeyError {}

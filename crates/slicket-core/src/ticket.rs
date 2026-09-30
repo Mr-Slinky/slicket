@@ -1,9 +1,15 @@
 //! Components that describe a ticket.
 //!
-//! [`TicketCore`] stores the fields that every ticket has. [`ClosedAt`] and [`Description`] store
-//! data that only some tickets have.
+//! Every ticket entity has a [`TicketCore`]. The other two components are optional, and a ticket
+//! entity has each one only where the data applies to it.
+//!
+//! | Component       | Found on                      | Stores                                      |
+//! |-----------------|-------------------------------|---------------------------------------------|
+//! | [`TicketCore`]  | every ticket                  | the seven fields every ticket has           |
+//! | [`ClosedAt`]    | closed tickets                | the time at which the ticket was closed     |
+//! | [`Description`] | tickets with a longer account | the text that explains the ticket in detail |
 
-use crate::world::{Entity, Person};
+use crate::world::{Entity, Key, Person, Ticket};
 
 // ========================================================================================== \\
 //                                         Public API                                         \\
@@ -127,46 +133,26 @@ impl TicketCore {
 ///
 /// Only code inside `slicket-core` can create a `TicketKey`. The number is an `i32`. This is a
 /// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
-/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 tickets.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TicketKey(pub(crate) i32);
-
-impl TicketKey {
-    /// Returns the number that identifies this ticket.
-    pub fn get(self) -> i32 {
-        self.0
-    }
-}
+/// keys from 1, upwards. An `i32` therefore allows 2,147,483,647 tickets.
+pub type TicketKey = Key<Ticket>;
 
 /// A `TicketTypeKey` is the key that identifies a ticket type in the database.
 ///
 /// Only code inside `slicket-core` can create a `TicketTypeKey`. The number is an `i32`. This is a
 /// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
-/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 ticket types.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TicketTypeKey(pub(crate) i32);
+/// keys from 1, upwards. An `i32` therefore allows 2,147,483,647 ticket types.
+pub type TicketTypeKey = Key<TicketType>;
 
-impl TicketTypeKey {
-    /// Returns the number that identifies this ticket type.
-    pub fn get(self) -> i32 {
-        self.0
-    }
-}
+pub struct TicketType;
 
 /// A `StatusKey` is the key that identifies a ticket status in the database.
 ///
 /// Only code inside `slicket-core` can create a `StatusKey`. The number is an `i32`. This is a
 /// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
-/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 statuses.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct StatusKey(pub(crate) i32);
+/// keys from 1, upwards. An `i32` therefore allows 2,147,483,647 statuses.
+pub type StatusKey = Key<Status>;
 
-impl StatusKey {
-    /// Returns the number that identifies this status.
-    pub fn get(self) -> i32 {
-        self.0
-    }
-}
+pub struct Status;
 
 /// A `Priority` sets how urgent a ticket is, as a number.
 ///
@@ -178,6 +164,12 @@ impl StatusKey {
 /// one. Sorting tickets by `Priority` therefore puts the least urgent ticket first.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Priority(pub(crate) u8);
+
+impl From<u8> for Priority {
+    fn from(priority: u8) -> Self {
+        Self(priority)
+    }
+}
 
 /// A `UnixEpochSeconds` stores a point in time, in whole seconds since the Unix epoch
 /// (1970-01-01 00:00:00 UTC).

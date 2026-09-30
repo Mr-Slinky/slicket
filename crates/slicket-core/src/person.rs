@@ -4,7 +4,7 @@
 //! every organisation has. A person's email address is an [`Email`], which [`Email::new`] checks
 //! before it creates one.
 
-use crate::{Entity, Org};
+use crate::{Entity, Key, Org, Person};
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
@@ -123,15 +123,7 @@ impl OrgCore {
 /// Only code inside `slicket-core` can create an `OrgKey`. The number is an `i32`. This is a
 /// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
 /// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 organisations.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct OrgKey(pub(crate) i32);
-
-impl OrgKey {
-    /// Returns the number that identifies this organisation.
-    pub fn get(self) -> i32 {
-        self.0
-    }
-}
+pub type OrgKey = Key<Org>;
 
 /// A `PersonKey` is the key that identifies a person in the database.
 ///
@@ -144,15 +136,7 @@ impl OrgKey {
 /// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 people.
 ///
 /// [`Entity<Person>`]: crate::Entity
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PersonKey(pub(crate) i32);
-
-impl PersonKey {
-    /// Returns the number that identifies this person.
-    pub fn get(self) -> i32 {
-        self.0
-    }
-}
+pub type PersonKey = Key<Person>;
 
 /// An `Email` is a person's email address, checked when it is created.
 ///
