@@ -12,9 +12,8 @@
 use crate::world::{Entity, Key, Person, Ticket};
 
 // ========================================================================================== \\
-//                                         Public API                                         \\
+//                                     TicketCore Struct                                      \\
 // ========================================================================================== \\
-
 /// `TicketCore` is the component that stores the seven fields every ticket has.
 ///
 /// | Field        | Type                      | Stores                                   |
@@ -125,6 +124,9 @@ impl TicketCore {
     }
 }
 
+// ========================================================================================== \\
+//                                Key Types and Marker Structs                                \\
+// ========================================================================================== \\
 /// A `TicketKey` is the key that identifies a ticket in the database.
 ///
 /// A `TicketKey` and an [`Entity<Ticket>`] both identify a ticket, but they are separate values.
@@ -154,6 +156,9 @@ pub type StatusKey = Key<Status>;
 
 pub struct Status;
 
+// ========================================================================================== \\
+//                                      Priority Struct                                       \\
+// ========================================================================================== \\
 /// A `Priority` sets how urgent a ticket is, as a number.
 ///
 /// Only code inside `slicket-core` can create a `Priority`. The number is a `u8`, which allows 256
@@ -171,6 +176,9 @@ impl From<u8> for Priority {
     }
 }
 
+// ========================================================================================== \\
+//                                  UnixEpochSeconds Struct                                   \\
+// ========================================================================================== \\
 /// A `UnixEpochSeconds` stores a point in time, in whole seconds since the Unix epoch
 /// (1970-01-01 00:00:00 UTC).
 ///
@@ -192,6 +200,9 @@ impl From<u8> for Priority {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UnixEpochSeconds(pub u64);
 
+// ========================================================================================== \\
+//                                    Optional Components                                     \\
+// ========================================================================================== \\
 /// `ClosedAt` stores the time at which a ticket was closed.
 ///
 /// `ClosedAt` is an optional component, meant only for closed tickets. Since it derives `Ord`,

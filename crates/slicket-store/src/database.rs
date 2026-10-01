@@ -16,9 +16,8 @@ use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 
 // ========================================================================================== \\
-//                                         Public API                                         \\
+//                                      DbConfig Struct                                       \\
 // ========================================================================================== \\
-
 /// The settings that [`init_pool`] uses to open a pool of PostgreSQL connections.
 pub struct DbConfig {
     /// The connection URL, including the user and password.
@@ -67,6 +66,9 @@ impl DbConfig {
     }
 }
 
+// ========================================================================================== \\
+//                                         Functions                                          \\
+// ========================================================================================== \\
 /// Opens a pool of PostgreSQL connections with the settings in `cfg`.
 ///
 /// The pool opens its first connection before `init_pool` returns. A wrong URL, a wrong password
@@ -102,7 +104,6 @@ pub async fn init_database(pool: &PgPool) -> Result<(), MigrateError> {
 // ========================================================================================== \\
 //                                           Tests                                            \\
 // ========================================================================================== \\
-
 #[cfg(test)]
 mod tests {
     use super::*;

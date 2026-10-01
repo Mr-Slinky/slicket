@@ -9,9 +9,8 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 
 // ========================================================================================== \\
-//                                         Public API                                         \\
+//                                     PersonCore Struct                                      \\
 // ========================================================================================== \\
-
 /// `PersonCore` is the component that stores the four fields every person has.
 ///
 /// | Field        | Type            | Stores                                 |
@@ -73,6 +72,9 @@ impl PersonCore {
     }
 }
 
+// ========================================================================================== \\
+//                                       OrgCore Struct                                       \\
+// ========================================================================================== \\
 /// `OrgCore` is the component that stores the two fields every organisation has.
 ///
 /// | Field     | Type       | Stores                                 |
@@ -114,6 +116,9 @@ impl OrgCore {
     }
 }
 
+// ========================================================================================== \\
+//                                         Key Types                                          \\
+// ========================================================================================== \\
 /// An `OrgKey` is the key that identifies an organisation in the database.
 ///
 /// An `OrgKey` and an [`Entity<Org>`] both identify an organisation, but they are separate values.
@@ -138,6 +143,9 @@ pub type OrgKey = Key<Org>;
 /// [`Entity<Person>`]: crate::Entity
 pub type PersonKey = Key<Person>;
 
+// ========================================================================================== \\
+//                                        Email Struct                                        \\
+// ========================================================================================== \\
 /// An `Email` is a person's email address, checked when it is created.
 ///
 /// The field is private, meaning [`Email::new`] is the only way to create an `Email`. As a result,

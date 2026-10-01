@@ -11,9 +11,8 @@ use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 
 // ========================================================================================== \\
-//                                         Public API                                         \\
+//                                       Entity Struct                                        \\
 // ========================================================================================== \\
-
 /// An `Entity` identifies one object in Slicket's ECS, such as a ticket.
 ///
 /// Each `Entity` pairs an id with a generation. `Entity` derives `PartialEq`, meaning two values
@@ -110,6 +109,30 @@ impl<T> Debug for Entity<T> {
     }
 }
 
+// ========================================================================================== \\
+//                                       Marker Structs                                       \\
+// ========================================================================================== \\
+/// Marks an [`Entity`] as a ticket, as in `Entity<Ticket>`.
+///
+/// `Ticket` is a unit struct, which callers use only as the type parameter of an `Entity`.
+pub struct Ticket;
+
+/// Marks an [`Entity`] as a person, such as an employee who raises a ticket, as in
+/// `Entity<Person>`.
+///
+/// `Person` is a unit struct, which callers use only as the type parameter of an `Entity`.
+pub struct Person;
+
+/// Marks an [`Entity`] as an organisation, such as the one a person belongs to, as in
+/// `Entity<Org>`.
+///
+/// `Org` is a unit struct, which callers use only as the type parameter of an `Entity`.
+pub struct Org;
+
+
+// ========================================================================================== \\
+//                                        Key Struct                                          \\
+// ========================================================================================== \\
 pub struct Key<T> {
     pub(crate) value: i32,
     _kind: PhantomData<fn() -> T>,
@@ -176,23 +199,20 @@ impl<T> Debug for Key<T> {
     }
 }
 
-/// Marks an [`Entity`] as a ticket, as in `Entity<Ticket>`.
-///
-/// `Ticket` is a unit struct, which callers use only as the type parameter of an `Entity`.
-pub struct Ticket;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct KeyError(pub(crate) i32);
 
-/// Marks an [`Entity`] as a person, such as an employee who raises a ticket, as in
-/// `Entity<Person>`.
-///
-/// `Person` is a unit struct, which callers use only as the type parameter of an `Entity`.
-pub struct Person;
+impl Display for KeyError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "the key {} is below 1", self.0)
+    }
+}
 
-/// Marks an [`Entity`] as an organisation, such as the one a person belongs to, as in
-/// `Entity<Org>`.
-///
-/// `Org` is a unit struct, which callers use only as the type parameter of an `Entity`.
-pub struct Org;
+impl std::error::Error for KeyError {}
 
+// ========================================================================================== \\
+//                                       Tenant Struct                                        \\
+// ========================================================================================== \\
 /// A `Tenant` is the business that runs this instance of Slicket.
 ///
 /// `Tenant` is an ECS resource. A resource is a single value that belongs to the whole world
@@ -227,14 +247,3 @@ impl Tenant {
         self.org
     }
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct KeyError(pub(crate) i32);
-
-impl Display for KeyError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "the key {} is below 1", self.0)
-    }
-}
-
-impl std::error::Error for KeyError {}
