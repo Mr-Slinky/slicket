@@ -1,8 +1,16 @@
-//! The types that identify objects in the ECS, and the resources that belong to the whole world.
+//! The types that identify objects, and the resources that belong to the whole world.
 //!
-//! [`Entity`] identifies one object. Its type parameter is one of the marker types [`Ticket`],
-//! [`Person`] or [`Org`], which states the kind of object the entity identifies. [`Tenant`] is a
-//! resource, which stores the organisation that runs this instance of Slicket.
+//! [`Entity`] identifies one object in the ECS. Its type parameter is one of the marker types
+//! [`Ticket`], [`Person`] or [`Org`], which states the kind of object the entity identifies.
+//! [`Key`] identifies one row in the database, and its type parameter states the kind of row.
+//!
+//! A resource is a single value that belongs to the whole world rather than to one entity. This
+//! module defines two resources:
+//!
+//! | Resource   | Stores                                              |
+//! |------------|-----------------------------------------------------|
+//! | [`Tenant`] | the organisation that runs this instance of Slicket |
+//! | [`Lookup`] | every value of one kind, each under its `Key`       |
 
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
@@ -131,14 +139,42 @@ pub struct Person;
 pub struct Org;
 
 // ========================================================================================== \\
-//                                        Key Struct                                          \\
+//                                         Key Struct                                         \\
 // ========================================================================================== \\
+/// A `Key` is the number that identifies one row in the database, such as the row of a ticket.
+///
+/// The type parameter `T` states the kind of row the key identifies. `Key<Ticket>` and
+/// `Key<Person>` are separate types. As a result, the compiler rejects a `Key<Ticket>` passed
+/// where a `Key<Person>` is expected. `T` exists only at compile time, meaning creating a `Key`
+/// never requires a value of `T`.
+///
+/// The number is an `i32`, and it is always 1 or higher. This is a decision: the database stores
+/// a key as a PostgreSQL `INTEGER`, which is signed, and numbers keys from 1 upwards. An `i32`
+/// therefore allows 2,147,483,647 keys of each kind.
+///
+/// A caller creates a `Key` from an `i32` with `try_from`, which returns a [`KeyError`] for a
+/// number below 1. A caller reads the number back through [`Key::get`].
+///
+/// Two keys are equal when their numbers are equal. A key with a lower number compares as less
+/// than a key with a higher one.
+///
+/// # Examples
+///
+/// ```
+/// use slicket_core::{Key, Ticket};
+///
+/// let key = Key::<Ticket>::try_from(42).unwrap();
+/// assert_eq!(key.get(), 42);
+///
+/// assert!(Key::<Ticket>::try_from(0).is_err());
+/// ```
 pub struct Key<T> {
     pub(crate) value: i32,
     _kind: PhantomData<fn() -> T>,
 }
 
 impl<T> Key<T> {
+    /// Returns the number of this key.
     pub fn get(self) -> i32 {
         self.value
     }
@@ -147,6 +183,7 @@ impl<T> Key<T> {
 impl<T> TryFrom<i32> for Key<T> {
     type Error = KeyError;
 
+    /// Creates a key from `value`, or returns a [`KeyError`] where `value` is below 1.
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         if value >= 1 {
             Ok(Self {
@@ -199,6 +236,21 @@ impl<T> Debug for Key<T> {
     }
 }
 
+/// A `KeyError` reports that a number is below 1, the lowest number a [`Key`] accepts.
+///
+/// `KeyError` stores the rejected number. The `Display` implementation returns a message that
+/// includes it, such as "the key 0 is below 1". `KeyError` also implements [`std::error::Error`],
+/// meaning the `?` operator can convert it into a `Box<dyn Error>`.
+///
+/// # Examples
+///
+/// ```
+/// use slicket_core::{Key, Ticket};
+///
+/// let error = Key::<Ticket>::try_from(0).unwrap_err();
+///
+/// assert_eq!(error.to_string(), "the key 0 is below 1");
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct KeyError(pub(crate) i32);
 
@@ -251,22 +303,57 @@ impl Tenant {
 // ========================================================================================== \\
 //                                       Lookup Struct                                        \\
 // ========================================================================================== \\
+/// A `Lookup` stores every value of one kind, each under the [`Key`] that identifies it in the
+/// database.
+///
+/// `Lookup` is an ECS resource. A resource is a single value that belongs to the whole world
+/// rather than to one entity. A `Lookup` is meant for the values that many entities share. An
+/// entity then stores the `Key` alone, and a caller passes that key to [`Lookup::find`] to read
+/// the value.
+///
+/// The type parameter `T` is the type of the stored values. A `Lookup<T>` accepts only a
+/// `Key<T>`. As a result, the compiler rejects a key of another kind.
+///
+/// # Examples
+///
+/// A caller stores one name under the key 1, then looks up the keys 1 and 2.
+///
+/// ```
+/// use slicket_core::Key;
+/// use slicket_core::world::Lookup;
+///
+/// let first = Key::<String>::try_from(1).unwrap();
+/// let second = Key::<String>::try_from(2).unwrap();
+///
+/// let mut names = Lookup::new();
+/// names.insert(first, String::from("Incident"));
+///
+/// assert_eq!(names.find(first), Some(&String::from("Incident")));
+/// assert_eq!(names.find(second), None);
+/// ```
 #[derive(Debug, Clone)]
 pub struct Lookup<T> {
     values: BTreeMap<Key<T>, T>,
 }
 
 impl<T> Lookup<T> {
+    /// Creates an empty `Lookup`.
     pub fn new() -> Self {
         Self {
             values: BTreeMap::new(),
         }
     }
 
+    /// Stores `value` under `key`.
+    ///
+    /// Returns the value that `key` identified before the call, or `None` where `key` is new to
+    /// this `Lookup`.
     pub fn insert(&mut self, key: Key<T>, value: T) -> Option<T> {
         self.values.insert(key, value)
     }
 
+    /// Returns the value stored under `key`, or `None` where this `Lookup` stores no value under
+    /// that key.
     pub fn find(&self, key: Key<T>) -> Option<&T> {
         self.values.get(&key)
     }

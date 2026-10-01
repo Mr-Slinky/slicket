@@ -1,4 +1,4 @@
-//! Components that describe a ticket.
+//! Components that describe a ticket, and the types and statuses a ticket can have.
 //!
 //! Every ticket entity has a [`TicketCore`]. The other two components are optional, and a ticket
 //! entity has each one only where the data applies to it.
@@ -8,6 +8,9 @@
 //! | [`TicketCore`]  | every ticket                  | the seven fields every ticket has           |
 //! | [`ClosedAt`]    | closed tickets                | the time at which the ticket was closed     |
 //! | [`Description`] | tickets with a longer account | the text that explains the ticket in detail |
+//!
+//! A `TicketCore` stores the type and the status of its ticket as keys. [`TicketType`] and
+//! [`TicketStatus`] are the values those keys identify, and each one stores a name.
 
 use crate::world::{Entity, Key, Person, Ticket};
 
@@ -34,8 +37,8 @@ use crate::world::{Entity, Key, Person, Ticket};
 /// changes `status_key`, `priority` and `title` afterwards through a setter, such as
 /// [`TicketCore::set_priority`]. The other four fields keep the values that `new` gave them.
 ///
-/// Only code inside `slicket-core` can create a `TicketKey`, a `TicketTypeKey`, a `StatusKey` or a
-/// `Priority`. As such, only code inside `slicket-core` can create a `TicketCore`.
+/// A caller creates each key from an `i32` with `try_from`, as in `TicketKey::try_from(1)`. A
+/// caller creates the `Priority` from a `u8` with `Priority::from`.
 ///
 /// `TicketCore` derives `Clone`. A caller therefore copies one with `.clone()`. The copy is
 /// explicit because `title` is a `String`, which owns memory on the heap. Two `TicketCore`
@@ -125,7 +128,7 @@ impl TicketCore {
 }
 
 // ========================================================================================== \\
-//                                Key Types and Marker Structs                                \\
+//                                         Key Types                                          \\
 // ========================================================================================== \\
 /// A `TicketKey` is the key that identifies a ticket in the database.
 ///
@@ -133,23 +136,20 @@ impl TicketCore {
 /// The `Entity<Ticket>` is the ticket's index in the ECS, while the `TicketKey` is the ticket's key
 /// in the database.
 ///
-/// Only code inside `slicket-core` can create a `TicketKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
-/// keys from 1, upwards. An `i32` therefore allows 2,147,483,647 tickets.
+/// `TicketKey` is an alias for [`Key<Ticket>`](Key). A caller therefore creates one from an `i32`
+/// with `TicketKey::try_from`, which accepts a number that is 1 or higher.
 pub type TicketKey = Key<Ticket>;
 
-/// A `TicketTypeKey` is the key that identifies a ticket type in the database.
+/// A `TicketTypeKey` is the key that identifies a [`TicketType`] in the database.
 ///
-/// Only code inside `slicket-core` can create a `TicketTypeKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
-/// keys from 1, upwards. An `i32` therefore allows 2,147,483,647 ticket types.
+/// `TicketTypeKey` is an alias for [`Key<TicketType>`](Key). A caller therefore creates one from
+/// an `i32` with `TicketTypeKey::try_from`, which accepts a number that is 1 or higher.
 pub type TicketTypeKey = Key<TicketType>;
 
-/// A `StatusKey` is the key that identifies a ticket status in the database.
+/// A `StatusKey` is the key that identifies a [`TicketStatus`] in the database.
 ///
-/// Only code inside `slicket-core` can create a `StatusKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
-/// keys from 1, upwards. An `i32` therefore allows 2,147,483,647 statuses.
+/// `StatusKey` is an alias for [`Key<TicketStatus>`](Key). A caller therefore creates one from an
+/// `i32` with `StatusKey::try_from`, which accepts a number that is 1 or higher.
 pub type StatusKey = Key<TicketStatus>;
 
 // ========================================================================================== \\
@@ -157,9 +157,9 @@ pub type StatusKey = Key<TicketStatus>;
 // ========================================================================================== \\
 /// A `Priority` sets how urgent a ticket is, as a number.
 ///
-/// Only code inside `slicket-core` can create a `Priority`. The number is a `u8`, which allows 256
-/// priority levels. A higher number means a more urgent ticket. As a result, 0 is the lowest
-/// priority and `u8::MAX` (255) is the highest.
+/// A caller creates a `Priority` from a `u8` with `Priority::from`. A `u8` allows 256 priority
+/// levels. A higher number means a more urgent ticket. As a result, 0 is the lowest priority and
+/// `u8::MAX` (255) is the highest.
 ///
 /// `Priority` derives `Ord`, meaning a less urgent priority compares as less than a more urgent
 /// one. Sorting tickets by `Priority` therefore puts the least urgent ticket first.
@@ -213,29 +213,67 @@ pub struct ClosedAt(pub UnixEpochSeconds);
 pub struct Description(pub String);
 
 // ========================================================================================== \\
-//                                    Lookup Resources                                        \\
+//                                      Lookup Resources                                      \\
 // ========================================================================================== \\
+/// A `TicketType` is one kind of ticket, such as an incident or a service request.
+///
+/// `TicketType` stores the name of the type. A caller sets the name through [`TicketType::new`]
+/// and reads it back through [`TicketType::name`].
+///
+/// A [`TicketTypeKey`] identifies a `TicketType`. A [`TicketCore`] stores that key as its
+/// `type_key`.
+///
+/// # Examples
+///
+/// ```
+/// use slicket_core::TicketType;
+///
+/// let incident = TicketType::new(String::from("Incident"));
+///
+/// assert_eq!(incident.name(), "Incident");
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TicketType(String);
 
 impl TicketType {
+    /// Creates a `TicketType` from its name.
     pub fn new(name: String) -> Self {
         Self(name)
     }
 
+    /// Returns the name of this ticket type.
     pub fn name(&self) -> &str {
         &self.0
     }
 }
 
+/// A `TicketStatus` is one stage that a ticket can be in, such as open or closed.
+///
+/// `TicketStatus` stores the name of the status. A caller sets the name through
+/// [`TicketStatus::new`] and reads it back through [`TicketStatus::name`].
+///
+/// A [`StatusKey`] identifies a `TicketStatus`. A [`TicketCore`] stores that key as its
+/// `status_key`.
+///
+/// # Examples
+///
+/// ```
+/// use slicket_core::TicketStatus;
+///
+/// let open = TicketStatus::new(String::from("Open"));
+///
+/// assert_eq!(open.name(), "Open");
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TicketStatus(String);
 
 impl TicketStatus {
+    /// Creates a `TicketStatus` from its name.
     pub fn new(name: String) -> Self {
         Self(name)
     }
 
+    /// Returns the name of this ticket status.
     pub fn name(&self) -> &str {
         &self.0
     }

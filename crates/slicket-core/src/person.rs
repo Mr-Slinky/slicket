@@ -25,8 +25,8 @@ use std::fmt::{Display, Formatter};
 /// `name` afterwards through [`PersonCore::set_name`]. The other three fields keep the values that
 /// `new` gave them.
 ///
-/// Only code inside `slicket-core` can create a `PersonKey`. As such, only code inside
-/// `slicket-core` can create a `PersonCore`.
+/// A caller creates the `PersonKey` from an `i32` with `PersonKey::try_from`, and the `Email` from
+/// a `&str` with [`Email::new`].
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PersonCore {
     person_key: PersonKey,
@@ -86,8 +86,7 @@ impl PersonCore {
 /// one through the method of the same name, such as [`OrgCore::name`]. A caller changes `name`
 /// afterwards through [`OrgCore::set_name`]. `org_key` keeps the value that `new` gave it.
 ///
-/// Only code inside `slicket-core` can create an `OrgKey`. As such, only code inside
-/// `slicket-core` can create an `OrgCore`.
+/// A caller creates the `OrgKey` from an `i32` with `OrgKey::try_from`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OrgCore {
     org_key: OrgKey,
@@ -125,9 +124,8 @@ impl OrgCore {
 /// The `Entity<Org>` is the organisation's index in the ECS, while the `OrgKey` is the
 /// organisation's key in the database.
 ///
-/// Only code inside `slicket-core` can create an `OrgKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
-/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 organisations.
+/// `OrgKey` is an alias for [`Key<Org>`](Key). A caller therefore creates one from an `i32` with
+/// `OrgKey::try_from`, which accepts a number that is 1 or higher.
 pub type OrgKey = Key<Org>;
 
 /// A `PersonKey` is the key that identifies a person in the database.
@@ -136,9 +134,8 @@ pub type OrgKey = Key<Org>;
 /// The `Entity<Person>` is the person's index in the ECS, while the `PersonKey` is the person's key
 /// in the database.
 ///
-/// Only code inside `slicket-core` can create a `PersonKey`. The number is an `i32`. This is a
-/// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
-/// keys from 1 upwards. An `i32` therefore allows 2,147,483,647 people.
+/// `PersonKey` is an alias for [`Key<Person>`](Key). A caller therefore creates one from an `i32`
+/// with `PersonKey::try_from`, which accepts a number that is 1 or higher.
 ///
 /// [`Entity<Person>`]: crate::Entity
 pub type PersonKey = Key<Person>;

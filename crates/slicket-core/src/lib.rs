@@ -9,8 +9,12 @@
 //!
 //! - [`world`] defines [`Entity`], the id of one object, and the marker types [`Ticket`],
 //!   [`Person`] and [`Org`] that state which kind of object an `Entity` identifies. It also
-//!   defines the [`Tenant`] resource, the business that runs this instance of Slicket.
-//! - [`ticket`] defines the components that describe a ticket, starting with [`TicketCore`].
+//!   defines [`Key`], the number that identifies one row in the database. The module defines two
+//!   resources as well. [`Tenant`] is the business that runs this instance of Slicket, and
+//!   [`Lookup`](world::Lookup) stores the values that many entities share.
+//! - [`ticket`] defines the components that describe a ticket, starting with [`TicketCore`]. It
+//!   also defines [`TicketType`] and [`TicketStatus`], the values that a `Lookup` stores for
+//!   tickets.
 //! - [`person`] defines the components that describe a person and an organisation,
 //!   [`PersonCore`] and [`OrgCore`]. It also defines [`Email`], the checked email address
 //!   that a `PersonCore` stores.
