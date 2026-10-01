@@ -145,16 +145,12 @@ pub type TicketKey = Key<Ticket>;
 /// keys from 1, upwards. An `i32` therefore allows 2,147,483,647 ticket types.
 pub type TicketTypeKey = Key<TicketType>;
 
-pub struct TicketType;
-
 /// A `StatusKey` is the key that identifies a ticket status in the database.
 ///
 /// Only code inside `slicket-core` can create a `StatusKey`. The number is an `i32`. This is a
 /// decision: the database stores the key as a PostgreSQL `INTEGER`, which is signed, and numbers
 /// keys from 1, upwards. An `i32` therefore allows 2,147,483,647 statuses.
-pub type StatusKey = Key<Status>;
-
-pub struct Status;
+pub type StatusKey = Key<TicketStatus>;
 
 // ========================================================================================== \\
 //                                      Priority Struct                                       \\
@@ -215,3 +211,32 @@ pub struct ClosedAt(pub UnixEpochSeconds);
 /// `Description` is an optional component, since a title is enough for some tickets.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Description(pub String);
+
+// ========================================================================================== \\
+//                                    Lookup Resources                                        \\
+// ========================================================================================== \\
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct TicketType(String);
+
+impl TicketType {
+    pub fn new(name: String) -> Self {
+        Self(name)
+    }
+
+    pub fn name(&self) -> &str {
+        &self.0
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct TicketStatus(String);
+
+impl TicketStatus {
+    pub fn new(name: String) -> Self {
+        Self(name)
+    }
+
+    pub fn name(&self) -> &str {
+        &self.0
+    }
+}

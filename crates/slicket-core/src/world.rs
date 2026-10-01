@@ -5,6 +5,7 @@
 //! resource, which stores the organisation that runs this instance of Slicket.
 
 use std::cmp::Ordering;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
@@ -129,7 +130,6 @@ pub struct Person;
 /// `Org` is a unit struct, which callers use only as the type parameter of an `Entity`.
 pub struct Org;
 
-
 // ========================================================================================== \\
 //                                        Key Struct                                          \\
 // ========================================================================================== \\
@@ -245,5 +245,35 @@ impl Tenant {
     /// Returns the `Entity<Org>` of the organisation that is the tenant.
     pub fn org(&self) -> Entity<Org> {
         self.org
+    }
+}
+
+// ========================================================================================== \\
+//                                       Lookup Struct                                        \\
+// ========================================================================================== \\
+#[derive(Debug, Clone)]
+pub struct Lookup<T> {
+    values: BTreeMap<Key<T>, T>,
+}
+
+impl<T> Lookup<T> {
+    pub fn new() -> Self {
+        Self {
+            values: BTreeMap::new(),
+        }
+    }
+
+    pub fn insert(&mut self, key: Key<T>, value: T) -> Option<T> {
+        self.values.insert(key, value)
+    }
+
+    pub fn find(&self, key: Key<T>) -> Option<&T> {
+        self.values.get(&key)
+    }
+}
+
+impl<T> Default for Lookup<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
