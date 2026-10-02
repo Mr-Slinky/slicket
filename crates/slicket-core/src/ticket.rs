@@ -27,7 +27,7 @@ use crate::world::{Entity, Key, Person, Ticket};
 /// | `priority`   | [`Priority`]              | how urgent the ticket is                 |
 /// | `title`      | `String`                  | the one-line summary of the ticket       |
 /// | `raised_by`  | [`Entity<Person>`]        | the person who raised the ticket         |
-/// | `created_at` | [`UnixEpochSeconds`]      | the time at which the ticket was created |
+/// | `created_at` | [`UnixEpochMicros`]       | the time at which the ticket was created |
 ///
 /// Data that only some tickets have goes in separate components, such as [`ClosedAt`] and
 /// [`Description`].
@@ -51,7 +51,7 @@ pub struct TicketCore {
     priority: Priority,
     title: String,
     raised_by: Entity<Person>,
-    created_at: UnixEpochSeconds,
+    created_at: UnixEpochMicros,
 }
 
 impl TicketCore {
@@ -63,7 +63,7 @@ impl TicketCore {
         priority: Priority,
         title: String,
         raised_by: Entity<Person>,
-        created_at: UnixEpochSeconds,
+        created_at: UnixEpochMicros,
     ) -> Self {
         Self {
             ticket_key,
@@ -107,7 +107,7 @@ impl TicketCore {
     }
 
     /// Returns the time at which this ticket was created.
-    pub fn created_at(&self) -> UnixEpochSeconds {
+    pub fn created_at(&self) -> UnixEpochMicros {
         self.created_at
     }
 
@@ -173,28 +173,28 @@ impl From<u8> for Priority {
 }
 
 // ========================================================================================== \\
-//                                  UnixEpochSeconds Struct                                   \\
+//                                  UnixEpochMicros Struct                                   \\
 // ========================================================================================== \\
-/// A `UnixEpochSeconds` stores a point in time, in whole seconds since the Unix epoch
+/// A `UnixEpochMicros` stores a point in time, in whole seconds since the Unix epoch
 /// (1970-01-01 00:00:00 UTC).
 ///
-/// `UnixEpochSeconds` derives `Ord`, so an earlier time compares as less than a later one.
+/// `UnixEpochMicros` derives `Ord`, so an earlier time compares as less than a later one.
 /// Sorting a list of them therefore puts the earliest time first.
 ///
 /// # Examples
 ///
-/// A caller creates a `UnixEpochSeconds` from a Unix timestamp and compares two of them with `<`.
+/// A caller creates a `UnixEpochMicros` from a Unix timestamp and compares two of them with `<`.
 ///
 /// ```
-/// use slicket_core::ticket::UnixEpochSeconds;
+/// use slicket_core::ticket::UnixEpochMicros;
 ///
-/// let earlier = UnixEpochSeconds(1_735_689_600); // 2025-01-01 00:00:00 UTC
-/// let later = UnixEpochSeconds(1_735_693_200); // 2025-01-01 01:00:00 UTC
+/// let earlier = UnixEpochMicros(1_735_689_600); // 2025-01-01 00:00:00 UTC
+/// let later = UnixEpochMicros(1_735_693_200); // 2025-01-01 01:00:00 UTC
 ///
 /// assert!(earlier < later);
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct UnixEpochSeconds(pub u64);
+pub struct UnixEpochMicros(pub i64);
 
 // ========================================================================================== \\
 //                                    Optional Components                                     \\
@@ -204,7 +204,7 @@ pub struct UnixEpochSeconds(pub u64);
 /// `ClosedAt` is an optional component, meant only for closed tickets. Since it derives `Ord`,
 /// sorting closed tickets by `ClosedAt` puts the earliest closure first.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ClosedAt(pub UnixEpochSeconds);
+pub struct ClosedAt(pub UnixEpochMicros);
 
 /// `Description` stores the longer text that explains a ticket, beyond its title.
 ///
