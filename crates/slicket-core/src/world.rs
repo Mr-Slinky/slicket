@@ -24,7 +24,7 @@ use std::marker::PhantomData;
 // ========================================================================================== \\
 /// An `Entity` identifies one object in Slicket's ECS, such as a ticket.
 ///
-/// Each `Entity` pairs an id with a generation. `Entity` derives `PartialEq`, meaning two values
+/// Each `Entity` pairs an id with a generation. `Entity` implements `PartialEq`, meaning two values
 /// are equal when their ids match and their generations match.
 ///
 /// The type parameter `T` is a marker type, such as [`Ticket`] or [`Person`], that states the kind

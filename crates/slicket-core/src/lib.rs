@@ -19,8 +19,9 @@
 //!   [`PersonCore`] and [`OrgCore`]. It also defines [`Email`], the checked email address
 //!   that a `PersonCore` stores.
 //!
-//! The crate root re-exports every public type, so a caller can write `slicket_core::TicketCore`
-//! in place of `slicket_core::ticket::TicketCore`.
+//! The crate root re-exports every public type apart from [`Lookup`](world::Lookup), so a caller
+//! can write `slicket_core::TicketCore` in place of `slicket_core::ticket::TicketCore`. A caller
+//! imports `Lookup` from its module, as `slicket_core::world::Lookup`.
 
 pub mod person;
 pub mod ticket;
