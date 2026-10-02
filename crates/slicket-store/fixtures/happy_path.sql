@@ -515,3 +515,12 @@ VALUES ('Incident'),
        ('Question'),
        ('Hardware & Peripherals'),
        ('Onboarding');
+
+INSERT
+INTO ticket_status (name)
+VALUES ('New'),
+       ('In Progress'),
+       ('Waiting on Customer'),
+       ('Waiting on Third Party'),
+       ('Resolved'),
+       ('Closed');
