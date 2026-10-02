@@ -524,29 +524,3 @@ VALUES ('New'),
        ('Waiting on Third Party'),
        ('Resolved'),
        ('Closed');
-
-
-INSERT
-INTO ticket (ticket_type_id, status_id, priority, title, raised_by, created_at, description)
-SELECT ticket_type.ticket_type_id,
-       ticket_status.status_id,
-       128,
-       'Reception printer will not print',
-       person.person_id,
-       TIMESTAMPTZ '2026-09-01 08:15:00+02',
-       'Jobs sit in the queue and nothing comes out. It worked on Friday.'
-FROM ticket_type,
-     ticket_status,
-     person
-WHERE ticket_type.name   = 'Incident'
-  AND ticket_status.name = 'New'
-  AND person.email       = 'nadia.hendricks@harbourviewdental.co.za';
-
-UPDATE ticket
-SET status_id = (SELECT status_id FROM ticket_status WHERE name = 'In Progress')
-WHERE title   = 'Reception printer will not print';
-
-UPDATE ticket
-SET status_id = (SELECT status_id FROM ticket_status WHERE name = 'Closed'),
-    closed_at = TIMESTAMPTZ '2026-09-03 16:40:00+02'
-WHERE title = 'Reception printer will not print';
