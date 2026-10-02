@@ -169,7 +169,7 @@ pub struct Org;
 /// assert!(Key::<Ticket>::try_from(0).is_err());
 /// ```
 pub struct Key<T> {
-    pub(crate) value: i32,
+    value: i32,
     _kind: PhantomData<fn() -> T>,
 }
 
