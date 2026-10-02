@@ -173,23 +173,24 @@ impl From<u8> for Priority {
 }
 
 // ========================================================================================== \\
-//                                  UnixEpochMicros Struct                                   \\
+//                                   UnixEpochMicros Struct                                   \\
 // ========================================================================================== \\
-/// A `UnixEpochMicros` stores a point in time, in whole seconds since the Unix epoch
-/// (1970-01-01 00:00:00 UTC).
+/// A `UnixEpochMicros` stores a point in time, in microseconds since the Unix epoch
+/// (1970-01-01 00:00:00 UTC). A negative value is a time before the epoch.
 ///
 /// `UnixEpochMicros` derives `Ord`, so an earlier time compares as less than a later one.
 /// Sorting a list of them therefore puts the earliest time first.
 ///
 /// # Examples
 ///
-/// A caller creates a `UnixEpochMicros` from a Unix timestamp and compares two of them with `<`.
+/// A caller creates a `UnixEpochMicros` from a count of microseconds, then compares two values
+/// with `<`.
 ///
 /// ```
 /// use slicket_core::ticket::UnixEpochMicros;
 ///
-/// let earlier = UnixEpochMicros(1_735_689_600); // 2025-01-01 00:00:00 UTC
-/// let later = UnixEpochMicros(1_735_693_200); // 2025-01-01 01:00:00 UTC
+/// let earlier = UnixEpochMicros(1_735_689_600_000_000); // 2025-01-01 00:00:00 UTC
+/// let later = UnixEpochMicros(1_735_693_200_000_000); // 2025-01-01 01:00:00 UTC
 ///
 /// assert!(earlier < later);
 /// ```
