@@ -15,7 +15,7 @@ CREATE TABLE person
     person_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     org_id    INTEGER NOT NULL REFERENCES org,
     name      TEXT    NOT NULL,
-    email     TEXT    NOT NULL
+    email     TEXT    NOT NULL CHECK (email = lower(email));
 );
 
 CREATE TABLE ticket_type
