@@ -184,7 +184,7 @@ impl Email {
     /// `new` splits the address at its last `@`. Therefore, `a@b@example.com` passes, with `a@b` as
     /// the part before the `@`.
     pub fn new(email: &str) -> Result<Self, EmailError> {
-        let email = email.trim();
+        let email = email.trim().to_lowercase();
 
         if email.len() > 254 {
             return Err(EmailError::TooLong);
@@ -214,7 +214,7 @@ impl Email {
             return Err(EmailError::DomainWithoutDot);
         }
 
-        Ok(Self(email.to_owned()))
+        Ok(Self(email))
     }
 
     /// Returns the email address as a string slice.
