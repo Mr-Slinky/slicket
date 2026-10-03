@@ -9,6 +9,7 @@ ticket_type = [
     { id = 5, name = "Question" },
     { id = 6, name = "Hardware & Peripherals" },
     { id = 7, name = "Onboarding" },
+    { id = 8, name = "Licensing" },
 ]
 
 ticket_status = [
