@@ -64,7 +64,7 @@ Slicket departs from a pure ECS in two places.
 ### Consequences
 
 * Good, because a ticket stores its closing time and its description only while it has them.
-* Good, because code that holds a `TicketCore` reads the ticket's title and priority directly,
+* Good, because code that has a `TicketCore` reads the ticket's title and priority directly,
   with no `Option` to unwrap.
 * Good, because the compiler rejects an id of one kind passed where another kind is expected.
 * Bad, because each object has two ids: its `Entity` in the ECS and its key in the database, such

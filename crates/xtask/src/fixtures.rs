@@ -34,8 +34,9 @@ const FIXTURES_DIR: &str = "../slicket-store/fixtures";
 ///
 /// # Errors
 ///
-/// Returns an error if the fixtures folder cannot be read, if a setup file fails to parse, or if
-/// an organisation puts more people on extra domains than it has people.
+/// Returns an error if the fixtures folder or a setup file cannot be read, if a setup file fails to
+/// parse, if an organisation puts more people on extra domains than it has people, or if a SQL file
+/// cannot be written.
 pub fn seed_database() -> anyhow::Result<()> {
     for path in find_setup_files()? {
         let sql = build_dml_script(&path)?;
@@ -47,7 +48,7 @@ pub fn seed_database() -> anyhow::Result<()> {
 
 /// Reads the setup file at `path` and returns the SQL script that inserts its rows.
 ///
-/// The script inserts each organisation in the order the file lists them. Each organisation row is
+/// The script inserts the organisations in the order the file lists them. Each organisation row is
 /// followed by the `tenant` row where that organisation is the tenant, then by the organisation's
 /// people. The ticket types and ticket statuses come thereafter, and the `setval` lines from
 /// [`Script::finalise`] end the script.
@@ -90,10 +91,10 @@ pub fn build_dml_script(path: &Path) -> anyhow::Result<String> {
 /// The contents of one TOML setup file.
 #[derive(Deserialize)]
 struct Setup {
-    ticket_type: Vec<NamedRow>,   // Singular name to match TOML file
-    ticket_status: Vec<NamedRow>, // Singular name to match TOML file
+    ticket_type: Vec<NamedRow>,   // Singular to match the key in the setup file
+    ticket_status: Vec<NamedRow>, // Singular to match the key in the setup file
     tenant: Tenant,
-    org: Vec<Org>, // Singular name to match TOML file
+    org: Vec<Org>, // Singular to match the key in the setup file
 }
 
 /// One TOML entry that gives an id and a name. Ticket types, ticket statuses and people all take
@@ -131,7 +132,7 @@ struct Org {
 /// Returns the path of every `.toml` file in the fixtures folder, sorted by path.
 ///
 /// `fs::read_dir` returns entries in an order that varies between platforms, which is why the
-/// paths are sorted.
+/// function sorts the paths.
 fn find_setup_files() -> io::Result<Vec<PathBuf>> {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join(FIXTURES_DIR);
     let mut paths = Vec::new();
@@ -163,7 +164,8 @@ fn push_org(script: &mut Script, org: &Org) {
 
 /// Appends an `INSERT` that writes the id of `org` to the `tenant` table, making `org` the tenant.
 ///
-/// The insert gives no id column, leaving the script with no `setval` line for `tenant`.
+/// The `tenant` table has no identity column, which is why the insert passes `None` as its id
+/// column.
 fn push_tenant(script: &mut Script, org: &Org) {
     let row = org.id.to_string();
     script
@@ -216,7 +218,7 @@ fn push_people(script: &mut Script, org: &Org) -> anyhow::Result<()> {
 ///
 /// Every person takes `org.domain`, apart from the people picked for `org.extra_domains`. The
 /// function picks those people at random, using a generator seeded with the organisation id. As a
-/// result, each run picks the same people, and the fixture comes out identical every time.
+/// result, every run picks the same people, meaning the fixture comes out identical each time.
 ///
 /// # Errors
 ///
@@ -243,7 +245,7 @@ fn assign_domains(org: &Org) -> anyhow::Result<Vec<&str>> {
 }
 
 /// Appends one `INSERT` that writes every row in `named_rows` to `table_name`, with the id in
-/// `id_column` and the name in `name`.
+/// `id_column` and the name in the `name` column.
 fn push_named_rows(
     script: &mut Script,
     table_name: &str,
@@ -262,8 +264,8 @@ fn push_named_rows(
 /// Builds an email address for the person called `name`, from `pattern` and `domain`.
 ///
 /// The first word of `name` replaces `{first}` in `pattern`. The remaining words, joined with no
-/// spaces, replace `{last}`. The function then keeps only letters, digits, dots and hyphens, and
-/// lowercases the result.
+/// spaces, replace `{last}`. The function then keeps only the letters, digits, dots and hyphens in
+/// that local part, lowercases it, and appends `@` and `domain`.
 ///
 /// # Examples
 ///

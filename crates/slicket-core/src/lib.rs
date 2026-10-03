@@ -1,15 +1,15 @@
 //! The core of Slicket, a ticketing system modelled as an Entity Component System (ECS).
 //!
-//! In an ECS, every object in the system is an entity, and an entity is only an id. Components
+//! In an ECS, every object in the system is an entity, and an entity is only an identifier. Components
 //! are plain data attached to entities. Systems are functions that run over every entity that has
 //! a given set of components. A resource is a single value that belongs to the whole world rather
 //! than to one entity.
 //!
 //! The crate is split into these modules:
 //!
-//! - [`world`] defines [`Entity`], the id of one object, and the marker types [`Ticket`],
+//! - [`world`] defines [`Entity`], the identifier of one object, and the marker types [`Ticket`],
 //!   [`Person`] and [`Org`] that state which kind of object an `Entity` identifies. It also
-//!   defines [`Key`], the number that identifies one row in the database. The module defines two
+//!   defines [`Key`], the number that identifies one row in the database. The module defines
 //!   resources as well. [`Tenant`] is the business that runs this instance of Slicket, and
 //!   [`Lookup`](world::Lookup) stores the values that many entities share.
 //! - [`ticket`] defines the components that describe a ticket, starting with [`TicketCore`]. It

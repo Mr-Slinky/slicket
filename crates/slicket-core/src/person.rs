@@ -11,7 +11,7 @@ use std::fmt::{Display, Formatter};
 // ========================================================================================== \\
 //                                     PersonCore Struct                                      \\
 // ========================================================================================== \\
-/// `PersonCore` is the component that stores the four fields every person has.
+/// `PersonCore` is the component that stores the fields every person has.
 ///
 /// | Field        | Type            | Stores                                 |
 /// |--------------|-----------------|----------------------------------------|
@@ -20,10 +20,10 @@ use std::fmt::{Display, Formatter};
 /// | `name`       | `String`        | the person's name                      |
 /// | `email`      | [`Email`]       | the person's email address             |
 ///
-/// The fields are private. A caller sets all four at once through [`PersonCore::new`], then reads
-/// each one through the method of the same name, such as [`PersonCore::name`]. A caller changes
-/// `name` afterwards through [`PersonCore::set_name`]. The other three fields keep the values that
-/// `new` gave them.
+/// The fields are private. A caller sets every field at once through [`PersonCore::new`], then
+/// reads each one through the method of the same name, such as [`PersonCore::name`]. A caller
+/// changes `name` afterwards through [`PersonCore::set_name`]. The other fields keep the values
+/// that `new` gave them.
 ///
 /// A caller creates the `PersonKey` from an `i32` with `PersonKey::try_from`, and the `Email` from
 /// a `&str` with [`Email::new`].
@@ -36,7 +36,7 @@ pub struct PersonCore {
 }
 
 impl PersonCore {
-    /// Creates a `PersonCore` from the four fields that every person has.
+    /// Creates a `PersonCore` from the fields that every person has.
     pub fn new(person_key: PersonKey, org_id: Entity<Org>, name: String, email: Email) -> Self {
         Self {
             person_key,
@@ -75,16 +75,17 @@ impl PersonCore {
 // ========================================================================================== \\
 //                                       OrgCore Struct                                       \\
 // ========================================================================================== \\
-/// `OrgCore` is the component that stores the two fields every organisation has.
+/// `OrgCore` is the component that stores the fields every organisation has.
 ///
 /// | Field     | Type       | Stores                                 |
 /// |-----------|------------|----------------------------------------|
 /// | `org_key` | [`OrgKey`] | the organisation's key in the database |
 /// | `name`    | `String`   | the organisation's name                |
 ///
-/// The fields are private. A caller sets both at once through [`OrgCore::new`], then reads each
-/// one through the method of the same name, such as [`OrgCore::name`]. A caller changes `name`
-/// afterwards through [`OrgCore::set_name`]. `org_key` keeps the value that `new` gave it.
+/// The fields are private. A caller sets every field at once through [`OrgCore::new`], then reads
+/// each one through the method of the same name, such as [`OrgCore::name`]. A caller changes
+/// `name` afterwards through [`OrgCore::set_name`]. The other fields keep the values that `new`
+/// gave them.
 ///
 /// A caller creates the `OrgKey` from an `i32` with `OrgKey::try_from`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -94,7 +95,7 @@ pub struct OrgCore {
 }
 
 impl OrgCore {
-    /// Creates an `OrgCore` from the two fields that every organisation has.
+    /// Creates an `OrgCore` from the fields that every organisation has.
     pub fn new(org_key: OrgKey, name: String) -> Self {
         Self { org_key, name }
     }
@@ -166,8 +167,9 @@ pub struct Email(String);
 impl Email {
     /// Creates an `Email` from `email` once it passes every check.
     ///
-    /// `new` first trims whitespace from both ends of `email`. The checks then run on the trimmed
-    /// address, in the order below, and `new` returns the variant of the first check that fails:
+    /// `new` first trims whitespace from both ends of `email`, then converts the result to lower
+    /// case. The checks run on that address in the order below, and `new` returns the variant of
+    /// the first check that fails:
     ///
     /// | Check                                           | Fails with                         |
     /// |-------------------------------------------------|------------------------------------|
@@ -179,7 +181,7 @@ impl Email {
     /// | The address contains no whitespace              | [`EmailError::HasWhitespace`]      |
     /// | The domain has a dot, with text around each one | [`EmailError::DomainWithoutDot`]   |
     ///
-    /// When every check passes, the returned `Email` stores the trimmed address.
+    /// When every check passes, the returned `Email` stores the trimmed, lower-case address.
     ///
     /// `new` splits the address at its last `@`. Therefore, `a@b@example.com` passes, with `a@b` as
     /// the part before the `@`.
@@ -232,7 +234,7 @@ impl Email {
 pub enum EmailError {
     /// The address is empty once trimmed.
     Empty,
-    /// The address is longer than 254 bytes once trimmed.
+    /// The address is longer than 254 bytes once trimmed and converted to lower case.
     TooLong,
     /// The address contains no `@`.
     MissingAt,

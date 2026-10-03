@@ -69,8 +69,8 @@ Agents have free rein in four areas:
    of those is unclear, the agent asks first. After writing the function, the agent explains the
    Rust concepts it relies on, then stops.
 4. **Git.** Agents write every commit message, the developer's included. An agent commits its own
-   changes once the developer has reviewed them, as the Commits section sets out. It commits the developer's work, pushes
-   and pulls each time the developer asks.
+   changes once the developer has reviewed them, as the Commits section sets out. It commits the
+   developer's work, pushes and pulls each time the developer asks.
 
 Every other change waits for an explicit instruction from the developer. That includes writing more
 than one function, adding types, modules or crates, restructuring code, adding dependencies and

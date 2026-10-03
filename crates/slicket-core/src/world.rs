@@ -5,12 +5,12 @@
 //! [`Key`] identifies one row in the database, and its type parameter states the kind of row.
 //!
 //! A resource is a single value that belongs to the whole world rather than to one entity. This
-//! module defines two resources:
+//! module defines these resources:
 //!
-//! | Resource   | Stores                                              |
-//! |------------|-----------------------------------------------------|
-//! | [`Tenant`] | the organisation that runs this instance of Slicket |
-//! | [`Lookup`] | every value of one kind, each under its `Key`       |
+//! | Resource   | Stores                                                               |
+//! |------------|----------------------------------------------------------------------|
+//! | [`Tenant`] | the `Entity<Org>` of the business that runs this instance of Slicket |
+//! | [`Lookup`] | every value of one kind, each under its `Key`                        |
 
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
@@ -121,21 +121,23 @@ impl<T> Debug for Entity<T> {
 // ========================================================================================== \\
 //                                       Marker Structs                                       \\
 // ========================================================================================== \\
-/// Marks an [`Entity`] as a ticket, as in `Entity<Ticket>`.
+/// Marks an [`Entity`] or a [`Key`] as a ticket, as in `Entity<Ticket>` and `Key<Ticket>`.
 ///
-/// `Ticket` is a unit struct, which callers use only as the type parameter of an `Entity`.
+/// `Ticket` is a unit struct, which callers use only as the type parameter of an `Entity` or a
+/// `Key`.
 pub struct Ticket;
 
-/// Marks an [`Entity`] as a person, such as an employee who raises a ticket, as in
-/// `Entity<Person>`.
+/// Marks an [`Entity`] or a [`Key`] as a person, such as an employee who raises a ticket, as in
+/// `Entity<Person>` and `Key<Person>`.
 ///
-/// `Person` is a unit struct, which callers use only as the type parameter of an `Entity`.
+/// `Person` is a unit struct, which callers use only as the type parameter of an `Entity` or a
+/// `Key`.
 pub struct Person;
 
-/// Marks an [`Entity`] as an organisation, such as the one a person belongs to, as in
-/// `Entity<Org>`.
+/// Marks an [`Entity`] or a [`Key`] as an organisation, such as the one a person belongs to, as in
+/// `Entity<Org>` and `Key<Org>`.
 ///
-/// `Org` is a unit struct, which callers use only as the type parameter of an `Entity`.
+/// `Org` is a unit struct, which callers use only as the type parameter of an `Entity` or a `Key`.
 pub struct Org;
 
 // ========================================================================================== \\

@@ -29,8 +29,8 @@ components.
 
 ## Status
 
-Slicket is at an early design stage. The planned work, and the scope it currently covers, is tracked
-in [docs/TODO.md](docs/TODO.md).
+Slicket is at an early design stage. [docs/TODO.md](docs/TODO.md) lists the planned work and the
+scope it covers so far.
 
 ## Crates
 
@@ -41,6 +41,7 @@ Slicket is a Cargo workspace, with each crate in its own folder under `crates/`.
 | `slicket-core`   | the ECS types: entity ids, components and resources                       |
 | `slicket-store`  | the PostgreSQL schema, and the code that connects to the database         |
 | `slicket-server` | the executable, which will serve the frontend that ADR 0004 describes     |
+| `xtask`          | a developer tool that writes the SQL fixtures of `slicket-store`          |
 
 The architecture decisions behind this layout are in [docs/decisions](docs/decisions/README.md).
 
@@ -58,7 +59,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-These commands then build and test every crate, run from the repository root:
+That developer then builds and tests every crate, again from the repository root:
 
 ```
 cargo build
@@ -66,8 +67,8 @@ cargo test
 ```
 
 Each test that uses the database creates a fresh database of its own and drops it once the test
-passes. The `slicket` database therefore keeps whatever data a developer put in it. `docker compose down` stops the database, and
-`docker-compose.yml` describes the other commands.
+passes. The `slicket` database therefore keeps whatever data a developer put in it.
+`docker compose down` stops the database, and `docker-compose.yml` describes the other commands.
 
 ## Conventions
 

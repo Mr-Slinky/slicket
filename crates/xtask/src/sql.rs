@@ -1,4 +1,4 @@
-//! Builds the SQL statements that the fixture generator writes to a fixture file.
+//! Builds a PostgreSQL script of `INSERT`, `UPDATE` and `DELETE` statements as a string.
 //!
 //! A caller creates a [`Script`], adds statements to it one at a time, and calls
 //! [`Script::finalise`] to get the finished SQL as a string:
@@ -15,8 +15,8 @@
 //!
 //! The builder trims and lowercases each table name and id column name. It writes every other
 //! argument into the SQL exactly as given, including column lists, rows, assignments and
-//! conditions. The caller therefore checks those values before passing them in, since a misspelt
-//! column or an id that matches no row goes straight into the script.
+//! conditions. The caller therefore checks those values before passing them in. A misspelt column
+//! or an id that matches no row reaches the script unchanged.
 
 use std::fmt::Write;
 
@@ -164,9 +164,9 @@ impl Script {
 
 /// One SQL statement, built up one clause at a time.
 ///
-/// Each clause method appends its clause and returns the same statement, meaning a caller chains
-/// the clauses in the order SQL expects them. The statement text ends without a `;`, which
-/// [`Script::finalise`] adds.
+/// Each clause method appends its clause to the end of the statement and returns the same
+/// statement. A caller therefore chains the clauses in the order SQL expects them. The statement
+/// text ends without a `;`, which [`Script::finalise`] adds.
 pub(crate) struct Statement(String);
 
 impl Statement {
@@ -228,7 +228,7 @@ impl Statement {
     ///
     /// # Examples
     ///
-    /// A caller closes a ticket and lowers its priority in one statement:
+    /// A caller moves a ticket to status 6 and sets its priority to 3 in one statement:
     ///
     /// ```ignore
     /// let mut script = Script::default();

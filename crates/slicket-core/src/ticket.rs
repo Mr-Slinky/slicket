@@ -1,11 +1,11 @@
 //! Components that describe a ticket, and the types and statuses a ticket can have.
 //!
-//! Every ticket entity has a [`TicketCore`]. The other two components are optional, and a ticket
+//! Every ticket entity has a [`TicketCore`]. The other components are optional, and a ticket
 //! entity has each one only where the data applies to it.
 //!
 //! | Component       | Found on                      | Stores                                      |
 //! |-----------------|-------------------------------|---------------------------------------------|
-//! | [`TicketCore`]  | every ticket                  | the seven fields every ticket has           |
+//! | [`TicketCore`]  | every ticket                  | the fields every ticket has                 |
 //! | [`ClosedAt`]    | closed tickets                | the time at which the ticket was closed     |
 //! | [`Description`] | tickets with a longer account | the text that explains the ticket in detail |
 //!
@@ -17,7 +17,7 @@ use crate::world::{Entity, Key, Person, Ticket};
 // ========================================================================================== \\
 //                                     TicketCore Struct                                      \\
 // ========================================================================================== \\
-/// `TicketCore` is the component that stores the seven fields every ticket has.
+/// `TicketCore` is the component that stores the fields every ticket has.
 ///
 /// | Field        | Type                      | Stores                                   |
 /// |--------------|---------------------------|------------------------------------------|
@@ -32,17 +32,17 @@ use crate::world::{Entity, Key, Person, Ticket};
 /// Data that only some tickets have goes in separate components, such as [`ClosedAt`] and
 /// [`Description`].
 ///
-/// The fields are private. A caller sets all seven at once through [`TicketCore::new`], then reads
-/// each one through the method of the same name, such as [`TicketCore::priority`]. A caller
+/// The fields are private. A caller sets every field at once through [`TicketCore::new`], then
+/// reads each one through the method of the same name, such as [`TicketCore::priority`]. A caller
 /// changes `status_key`, `priority` and `title` afterwards through a setter, such as
-/// [`TicketCore::set_priority`]. The other four fields keep the values that `new` gave them.
+/// [`TicketCore::set_priority`]. The other fields keep the values that `new` gave them.
 ///
 /// A caller creates each key from an `i32` with `try_from`, as in `TicketKey::try_from(1)`. A
 /// caller creates the `Priority` from a `u8` with `Priority::from`.
 ///
 /// `TicketCore` derives `Clone`. A caller therefore copies one with `.clone()`. The copy is
 /// explicit because `title` is a `String`, which owns memory on the heap. Two `TicketCore`
-/// values are equal when all seven fields are equal.
+/// values are equal when every field is equal.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TicketCore {
     ticket_key: TicketKey,
@@ -55,7 +55,7 @@ pub struct TicketCore {
 }
 
 impl TicketCore {
-    /// Creates a `TicketCore` from the seven fields that every ticket has.
+    /// Creates a `TicketCore` from the fields that every ticket has.
     pub fn new(
         ticket_key: TicketKey,
         type_key: TicketTypeKey,
@@ -155,7 +155,7 @@ pub type StatusKey = Key<TicketStatus>;
 // ========================================================================================== \\
 //                                      Priority Struct                                       \\
 // ========================================================================================== \\
-/// A `Priority` sets how urgent a ticket is, as a number.
+/// A `Priority` states how urgent a ticket is, as a number.
 ///
 /// A caller creates a `Priority` from a `u8` with `Priority::from`. A `u8` allows 256 priority
 /// levels. A higher number means a more urgent ticket. As a result, 0 is the lowest priority and

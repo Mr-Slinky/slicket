@@ -31,7 +31,7 @@ pub struct DbConfig {
     pub(crate) acquire_timeout: Duration,
     /// How long a connection above `min_con` stays open while idle.
     pub(crate) idle_timeout: Duration,
-    /// The age at which the pool replaces a connection with a new one.
+    /// The age at which the pool closes a connection.
     pub(crate) max_lifetime: Duration,
 }
 
@@ -71,12 +71,12 @@ impl DbConfig {
 // ========================================================================================== \\
 /// Opens a pool of PostgreSQL connections with the settings in `cfg`.
 ///
-/// The pool opens its first connection before `init_pool` returns. A wrong URL, a wrong password
-/// or a database that is not running therefore fails here, with the `sqlx::Error` that
-/// PostgreSQL or the network reported.
+/// The pool opens its first connection before `init_pool` returns. As a result, `init_pool`
+/// returns an `sqlx::Error` when the URL is malformed, the password is wrong or the database is
+/// not running.
 ///
-/// `PgPool` is cheap to clone, and every clone shares the same connections. A caller clones the
-/// pool to hand it to each task that needs the database.
+/// Cloning a `PgPool` copies a reference-counted pointer, and every clone shares the same
+/// connections. A caller clones the pool to hand it to each task that needs the database.
 pub async fn init_pool(cfg: &DbConfig) -> Result<PgPool, sqlx::Error> {
     PgPoolOptions::new()
         .max_connections(cfg.max_con)
@@ -91,12 +91,12 @@ pub async fn init_pool(cfg: &DbConfig) -> Result<PgPool, sqlx::Error> {
 /// Applies every migration in this crate's `migrations` folder that the database has yet to run.
 ///
 /// `sqlx::migrate!()` reads the migration files at compile time and embeds them in the binary, so
-/// the binary needs no `migrations` folder at run time. Sqlx records each migration it applies in
-/// the `_sqlx_migrations` table, and on the next call it skips every migration listed there.
+/// the binary needs no `migrations` folder at run time. SQLx records each migration it applies in
+/// the `_sqlx_migrations` table, skipping every migration listed there on each call thereafter.
 /// Calling `init_database` on a database that is already up to date therefore changes nothing.
 ///
-/// Returns a `MigrateError` when a migration fails, or when a file already applied has changed
-/// since sqlx applied it.
+/// Returns a `MigrateError` when a migration fails, when a file already applied has changed since
+/// SQLx applied it, or when `_sqlx_migrations` lists a migration that has no file in this crate.
 pub async fn init_database(pool: &PgPool) -> Result<(), MigrateError> {
     sqlx::migrate!().run(pool).await
 }

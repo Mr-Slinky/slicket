@@ -9,7 +9,7 @@ decision-makers: Kheagen Haskins
 ## Context and Problem Statement
 
 Slicket needs a frontend in the browser, where the people in each organisation log and follow their
-tickets. The `slicket-server` crate is the only part of Slicket that a browser can reach. The
+tickets. The `slicket-server` crate is the only part of Slicket that a browser will reach. The
 frontend therefore talks to it over HTTP.
 
 There are two broad ways to build that frontend. In the first, the server exposes a JSON API, and
@@ -57,7 +57,7 @@ both the ticket list and the ticket page render.
 
 ### Consequences
 
-* Good, because the server holds the only copy of the state, meaning the page always shows what the
+* Good, because the server keeps the only copy of the state, meaning the page always shows what the
   server last decided.
 * Good, because the logic lives in Rust, and the browser runs htmx with no build step.
 * Good, because a mistake in a template is a compile error.

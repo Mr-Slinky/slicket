@@ -64,8 +64,9 @@ A database server that stores relational data and enforces its constraints.
 
 * Good, because it enforces foreign keys and `CHECK` constraints.
 * Good, because it runs schema changes inside a transaction.
-* Good, because `TIMESTAMPTZ` stores a point in time with its time zone.
-* Good, because sqlx, Diesel and SeaORM all support it.
+* Good, because `TIMESTAMPTZ` stores a point in time as an instant in UTC, whatever time zone the
+  value arrived in.
+* Good, because SQLx, Diesel and SeaORM all support it.
 * Bad, because it has signed integer types alone.
 
 ### MySQL
@@ -74,7 +75,7 @@ A database server that stores relational data, as PostgreSQL does.
 
 * Good, because it has unsigned integer types, which match the `u32` keys `slicket-core` used
   before.
-* Good, because sqlx, Diesel and SeaORM all support it.
+* Good, because SQLx, Diesel and SeaORM all support it.
 * Bad, because a schema change commits the open transaction, so a migration that fails halfway
   through leaves the schema half changed.
 
@@ -83,7 +84,7 @@ A database server that stores relational data, as PostgreSQL does.
 A database stored in a single file, which the application opens as a library.
 
 * Good, because it runs inside the application, with no server to start.
-* Good, because sqlx, Diesel and SeaORM all support it.
+* Good, because SQLx, Diesel and SeaORM all support it.
 * Bad, because one connection writes at a time, which limits how many users can update tickets at
   once.
 * Bad, because a column takes a declared type only in a `STRICT` table, and a point in time is

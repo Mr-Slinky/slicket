@@ -1,5 +1,5 @@
-# The happy path fixture as data. A tool reads this file and writes the INSERT statements
-# for each table, stating every id as given here.
+# This file lists the rows of the happy path fixture. `cargo xtask` reads it and writes
+# happy_path_setup.sql beside it, inserting every row with the id given here.
 
 ticket_type = [
     { id = 1, name = "Incident" },
@@ -20,7 +20,8 @@ ticket_status = [
     { id = 6, name = "Closed" },
 ]
 
-# The tenant is the org whose org_id appears here.
+# org_id identifies the organisation that runs this instance of Slicket. `cargo xtask` writes
+# it to the tenant table.
 [tenant]
 org_id = 1
 
