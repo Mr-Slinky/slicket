@@ -14,3 +14,4 @@ Slicket has one maintainer, so an ADR takes the status `accepted` when it is wri
 | [0004](0004-htmx-askama.md)              | Render the frontend on the server with askama and htmx               |
 | [0005](0005-tenant-resource.md)          | Model the tenant as a single resource that refers to an organisation |
 | [0006](0006-ticket-fixture-generator.md) | Generate the ticket fixture with a script that prints SQL            |
+| [0007](0007-lowercase-email.md)          | Store email addresses in lower case                                  |
