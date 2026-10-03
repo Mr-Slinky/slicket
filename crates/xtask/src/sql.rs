@@ -8,7 +8,7 @@ use std::fmt::Write;
 // Script must track all tables
 #[derive(Default)]
 pub(crate) struct Script {
-    script: String,
+    statements: Vec<Statement>,
     tables: Vec<(String, String)>,
 }
 
@@ -18,38 +18,50 @@ impl Script {
         table_name: &str,
         id_column: Option<&str>,
         columns: &[&str],
-    ) -> Statement {
+    ) -> &mut Statement {
         let table_name = normalise(table_name);
         if let Some(id_column) = id_column {
             self.track(&table_name, &normalise(id_column));
         }
 
-        Statement::insert_into(&table_name, id_column.is_some(), columns)
+        self.add(Statement::insert_into(
+            &table_name,
+            id_column.is_some(),
+            columns,
+        ))
     }
 
-    pub(crate) fn update(&self, table_name: &str) -> Statement {
-        Statement::update(&normalise(table_name))
+    pub(crate) fn update(&mut self, table_name: &str) -> &mut Statement {
+        self.add(Statement::update(&normalise(table_name)))
     }
 
-    pub(crate) fn delete_from(&self, table_name: &str) -> Statement {
-        Statement::delete_from(&normalise(table_name))
+    pub(crate) fn delete_from(&mut self, table_name: &str) -> &mut Statement {
+        self.add(Statement::delete_from(&normalise(table_name)))
     }
 
-    pub(crate) fn push(&mut self, statement: Statement) {
-        self.script.push_str(&statement.0);
-        self.script.push_str(";\n\n");
-    }
+    pub(crate) fn finalise(self) -> String {
+        let mut script = String::new();
+        for statement in &self.statements {
+            script.push_str(&statement.0);
+            script.push_str(";\n\n");
+        }
 
-    pub(crate) fn finalise(mut self) -> String {
         for (table_name, id_column) in &self.tables {
             writeln!(
-                self.script,
+                script,
                 "SELECT setval(pg_get_serial_sequence('{table_name}', '{id_column}'), (SELECT max({id_column}) FROM {table_name}));"
             )
             .unwrap();
         }
 
-        self.script
+        script
+    }
+
+    fn add(&mut self, statement: Statement) -> &mut Statement {
+        self.statements.push(statement);
+        self.statements
+            .last_mut()
+            .expect("the statement pushed on the line above is the last one")
     }
 
     fn track(&mut self, table_name: &str, id_column: &str) {
@@ -61,7 +73,6 @@ impl Script {
     }
 }
 
-#[must_use = "a Statement does nothing until it is pushed onto a Script"]
 pub(crate) struct Statement(String);
 
 impl Statement {
@@ -83,7 +94,7 @@ impl Statement {
         Self(format!("DELETE\nFROM {table_name}"))
     }
 
-    pub(crate) fn values(mut self, rows: &[&str]) -> Self {
+    pub(crate) fn values(&mut self, rows: &[&str]) -> &mut Self {
         let rows: Vec<String> = rows.iter().map(|row| format!("({row})")).collect();
         self.push("\nVALUES ");
         self.push(&rows.join(",\n       "));
@@ -91,14 +102,14 @@ impl Statement {
         self
     }
 
-    pub(crate) fn set(mut self, assignments: &[&str]) -> Self {
+    pub(crate) fn set(&mut self, assignments: &[&str]) -> &mut Self {
         self.push("\nSET ");
         self.push(&assignments.join(", "));
 
         self
     }
 
-    pub(crate) fn where_(mut self, condition: &str) -> Self {
+    pub(crate) fn where_(&mut self, condition: &str) -> &mut Self {
         self.push("\nWHERE ");
         self.push(condition);
 
@@ -113,6 +124,10 @@ impl Statement {
 fn normalise(name: &str) -> String {
     name.trim().to_lowercase()
 }
+
+// ========================================================================================== \\
+//                                           Tests                                            \\
+// ========================================================================================== \\
 
 #[cfg(test)]
 mod tests {
@@ -131,14 +146,13 @@ mod tests {
             "SELECT setval(pg_get_serial_sequence('ticket_type', 'ticket_type_id'), (SELECT max(ticket_type_id) FROM ticket_type));\n",
         );
 
-        let stmt = script
+        script
             .insert_into(
                 "ticket_type",
                 Some("ticket_type_id"),
                 &["ticket_type_id", "name"],
             )
             .values(&["1, 'Incident'", "2, 'Service Request'"]);
-        script.push(stmt);
         let actual = script.finalise();
 
         assert_eq!(expected, actual);
@@ -154,10 +168,9 @@ mod tests {
             "\n",
         );
 
-        let stmt = script
+        script
             .insert_into("ticket_tag", None, &["ticket_id", "tag_id"])
             .values(&["1, 2"]);
-        script.push(stmt);
         let actual = script.finalise();
 
         assert_eq!(expected, actual);
@@ -180,14 +193,20 @@ mod tests {
             "SELECT setval(pg_get_serial_sequence('ticket_type', 'ticket_type_id'), (SELECT max(ticket_type_id) FROM ticket_type));\n",
         );
 
-        let first = script
-            .insert_into("ticket_type", Some("ticket_type_id"), &["ticket_type_id", "name"])
+        script
+            .insert_into(
+                "ticket_type",
+                Some("ticket_type_id"),
+                &["ticket_type_id", "name"],
+            )
             .values(&["1, 'Incident'"]);
-        script.push(first);
-        let second = script
-            .insert_into(" TICKET_TYPE ", Some("Ticket_Type_Id"), &["ticket_type_id", "name"])
+        script
+            .insert_into(
+                " TICKET_TYPE ",
+                Some("Ticket_Type_Id"),
+                &["ticket_type_id", "name"],
+            )
             .values(&["2, 'Service Request'"]);
-        script.push(second);
         let actual = script.finalise();
 
         assert_eq!(expected, actual);
@@ -203,11 +222,10 @@ mod tests {
             "\n",
         );
 
-        let stmt = script
+        script
             .update("ticket")
             .set(&["status = 'Closed'", "priority = 3"])
             .where_("ticket_id = 1");
-        script.push(stmt);
         let actual = script.finalise();
 
         assert_eq!(expected, actual);
@@ -216,15 +234,9 @@ mod tests {
     #[test]
     fn test_delete_from_with_valid_args_returns_expected_sql() {
         let mut script = Script::default();
-        let expected = concat!(
-            "DELETE\n",
-            "FROM ticket\n",
-            "WHERE ticket_id = 1;\n",
-            "\n",
-        );
+        let expected = concat!("DELETE\n", "FROM ticket\n", "WHERE ticket_id = 1;\n", "\n",);
 
-        let stmt = script.delete_from("ticket").where_("ticket_id = 1");
-        script.push(stmt);
+        script.delete_from("ticket").where_("ticket_id = 1");
         let actual = script.finalise();
 
         assert_eq!(expected, actual);
