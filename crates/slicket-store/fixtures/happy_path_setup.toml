@@ -1,0 +1,264 @@
+# The happy path fixture as data. A tool reads this file and writes the INSERT statements
+# for each table, stating every id as given here.
+
+ticket_type = [
+    { id = 1, name = "Incident" },
+    { id = 2, name = "Service Request" },
+    { id = 3, name = "Problem" },
+    { id = 4, name = "Change" },
+    { id = 5, name = "Question" },
+    { id = 6, name = "Hardware & Peripherals" },
+    { id = 7, name = "Onboarding" },
+]
+
+ticket_status = [
+    { id = 1, name = "New" },
+    { id = 2, name = "In Progress" },
+    { id = 3, name = "Waiting on Customer" },
+    { id = 4, name = "Waiting on Third Party" },
+    { id = 5, name = "Resolved" },
+    { id = 6, name = "Closed" },
+]
+
+# The tenant is the org whose org_id appears here.
+[tenant]
+org_id = 1
+
+[[org]]
+id = 1
+name = "Slinky IT"
+domain = "slicket.com"
+email_pattern = "{first}.{last}"
+person = [
+    { id = 1, name = "Thandiwe Nkosi" },
+    { id = 2, name = "Pieter van der Merwe" },
+    { id = 3, name = "Aisha Patel" },
+    { id = 4, name = "Sipho Dlamini" },
+    { id = 5, name = "Megan O'Connor" },
+    { id = 6, name = "Lerato Mokoena" },
+    { id = 7, name = "Johan Botha" },
+    { id = 8, name = "Priya Naidoo" },
+    { id = 9, name = "Kagiso Molefe" },
+    { id = 10, name = "Chloe Adams" },
+    { id = 11, name = "Tshepo Mahlangu" },
+    { id = 12, name = "Ruan Steyn" },
+    { id = 13, name = "Nomvula Zulu" },
+    { id = 14, name = "Daniel Fourie" },
+    { id = 15, name = "Zanele Khumalo" },
+]
+
+[[org]]
+id = 2
+name = "Harbourview Dental"
+domain = "harbourviewdental.co.za"
+email_pattern = "{first}.{last}"
+person = [
+    { id = 16, name = "Nadia Hendricks" },
+    { id = 17, name = "Craig Williams" },
+    { id = 18, name = "Fatima Isaacs" },
+    { id = 19, name = "Bongani Ndlovu" },
+    { id = 20, name = "Liezl Pretorius" },
+    { id = 21, name = "Ayanda Mthembu" },
+    { id = 22, name = "Shannon Jacobs" },
+    { id = 23, name = "Riaan du Plessis" },
+    { id = 24, name = "Kavitha Govender" },
+    { id = 25, name = "Lindiwe Sithole" },
+    { id = 26, name = "Marco Ferreira" },
+    { id = 27, name = "Chloe Adams" },
+]
+
+[[org]]
+id = 3
+name = "Oakridge Primary School"
+domain = "gmail.com"
+email_pattern = "{first}.{last}"
+person = [
+    { id = 28, name = "Elaine Visser" },
+    { id = 29, name = "Themba Cele" },
+    { id = 30, name = "Rochelle Petersen" },
+    { id = 31, name = "Sipho Dlamini" },
+    { id = 32, name = "Karen Smit" },
+    { id = 33, name = "Mandla Shabalala" },
+    { id = 34, name = "Natasha Moodley" },
+    { id = 35, name = "Gert Swanepoel" },
+    { id = 36, name = "Palesa Mofokeng" },
+    { id = 37, name = "Brendan Lewis" },
+    { id = 38, name = "Nokuthula Dube" },
+    { id = 39, name = "Anita Reddy" },
+    { id = 40, name = "Willem Joubert" },
+    { id = 41, name = "Zodwa Ngcobo" },
+    { id = 42, name = "Candice Abrahams" },
+    { id = 43, name = "Lucky Maluleke" },
+    { id = 44, name = "Marietjie Kruger" },
+    { id = 45, name = "Sibusiso Mkhize" },
+    { id = 46, name = "Tamsin Clarke" },
+    { id = 47, name = "Refilwe Motaung" },
+    { id = 48, name = "Deon Oosthuizen" },
+    { id = 49, name = "Hlengiwe Buthelezi" },
+    { id = 50, name = "Samantha Davids" },
+    { id = 51, name = "Vusi Radebe" },
+    { id = 52, name = "Charmaine Olivier" },
+    { id = 53, name = "Neo Seabi" },
+    { id = 54, name = "Ilse Venter" },
+    { id = 55, name = "Ashwin Pillay" },
+    { id = 56, name = "Busisiwe Khoza" },
+    { id = 57, name = "Gavin Meyer" },
+]
+
+[[org]]
+id = 4
+name = "Karoo Freight"
+domain = "karoofreight.co.za"
+extra_domains = { "gmail.com" = 1, "outlook.com" = 1 }
+email_pattern = "{first}.{last}"
+person = [
+    { id = 58, name = "Hendrik Coetzee" },
+    { id = 59, name = "Nompumelelo Mabaso" },
+    { id = 60, name = "Jason Naicker" },
+    { id = 61, name = "Carla Bezuidenhout" },
+    { id = 62, name = "Lwazi Hadebe" },
+    { id = 63, name = "Stefan Nel" },
+    { id = 64, name = "Precious Mashaba" },
+    { id = 65, name = "Ravi Singh" },
+    { id = 66, name = "Annelie du Toit" },
+    { id = 67, name = "Mpho Tau" },
+    { id = 68, name = "Grant Robertson" },
+    { id = 69, name = "Thuli Mnguni" },
+    { id = 70, name = "Riyaad Salie" },
+    { id = 71, name = "Jacques Lombard" },
+    { id = 72, name = "Nosipho Gumede" },
+    { id = 73, name = "Wayne Hartley" },
+    { id = 74, name = "Keabetsoe Letsie" },
+    { id = 75, name = "Francois Rossouw" },
+    { id = 76, name = "Shireen Kader" },
+    { id = 77, name = "Mzwandile Ntuli" },
+    { id = 78, name = "Elsabe Human" },
+    { id = 79, name = "Kyle Pieterse" },
+    { id = 80, name = "Dineo Masilela" },
+    { id = 81, name = "Byron September" },
+    { id = 82, name = "Tanya Engelbrecht" },
+    { id = 83, name = "Sandile Xaba" },
+    { id = 84, name = "Reza Ebrahim" },
+    { id = 85, name = "Martie Labuschagne" },
+    { id = 86, name = "Tebogo Moloi" },
+    { id = 87, name = "Ashley Fortuin" },
+    { id = 88, name = "Sizwe Majola" },
+    { id = 89, name = "Lorraine van Wyk" },
+    { id = 90, name = "Nkosinathi Zungu" },
+    { id = 91, name = "Heinrich Erasmus" },
+    { id = 92, name = "Kamogelo Sebola" },
+    { id = 93, name = "Jolene Marais" },
+    { id = 94, name = "Ntando Msimang" },
+    { id = 95, name = "Yusuf Mohamed" },
+    { id = 96, name = "Christo Barnard" },
+    { id = 97, name = "Lebo Maseko" },
+    { id = 98, name = "Bianca Carelse" },
+    { id = 99, name = "Siyabonga Mazibuko" },
+    { id = 100, name = "Dirk Viljoen" },
+    { id = 101, name = "Mapule Sekhukhune" },
+    { id = 102, name = "Rowan Jansen" },
+    { id = 103, name = "Gugu Nxumalo" },
+    { id = 104, name = "Pravesh Maharaj" },
+    { id = 105, name = "Retha Cilliers" },
+    { id = 106, name = "Kabelo Modise" },
+    { id = 107, name = "Lauren Fisher" },
+    { id = 108, name = "Mxolisi Shezi" },
+    { id = 109, name = "Johannes Kotze" },
+    { id = 110, name = "Boitumelo Phiri" },
+    { id = 111, name = "Clint Wessels" },
+    { id = 112, name = "Zinhle Mkhabela" },
+    { id = 113, name = "Nishal Ramlall" },
+    { id = 114, name = "Adriaan Muller" },
+    { id = 115, name = "Thabiso Lekota" },
+    { id = 116, name = "Nicole February" },
+    { id = 117, name = "Musa Sibiya" },
+    { id = 118, name = "Wian Smuts" },
+    { id = 119, name = "Karabo Tshabalala" },
+    { id = 120, name = "Shaun Arendse" },
+    { id = 121, name = "Sanele Mthethwa" },
+    { id = 122, name = "Hannelie Brink" },
+    { id = 123, name = "Olwethu Mhlongo" },
+    { id = 124, name = "Imraan Parker" },
+    { id = 125, name = "Frikkie Loubser" },
+    { id = 126, name = "Tshegofatso Ramokgopa" },
+    { id = 127, name = "Jenna Walker" },
+    { id = 128, name = "Ayabonga Nqaba" },
+    { id = 129, name = "Pierre Theron" },
+    { id = 130, name = "Mbali Hlongwane" },
+    { id = 131, name = "Sunil Bhana" },
+    { id = 132, name = "Arno Vermeulen" },
+    { id = 133, name = "Lindokuhle Shange" },
+    { id = 134, name = "Ricardo Lottering" },
+    { id = 135, name = "Masego Kgosana" },
+    { id = 136, name = "Tiaan Blom" },
+    { id = 137, name = "Nandi Madlala" },
+    { id = 138, name = "Keegan Solomons" },
+    { id = 139, name = "Thapelo Makgoba" },
+    { id = 140, name = "Leonie Grobler" },
+    { id = 141, name = "Bheki Cebekhulu" },
+    { id = 142, name = "Denise Arnolds" },
+    { id = 143, name = "Kgomotso Seleka" },
+    { id = 144, name = "Morne Strydom" },
+    { id = 145, name = "Ntombi Khanyile" },
+    { id = 146, name = "Faizel Samuels" },
+    { id = 147, name = "Hanno Burger" },
+    { id = 148, name = "Onalenna Kgari" },
+    { id = 149, name = "Cheslyn Adonis" },
+    { id = 150, name = "Vuyo Mbatha" },
+    { id = 151, name = "Riana Fouche" },
+    { id = 152, name = "Tumelo Mathebula" },
+    { id = 153, name = "Duncan Frazer" },
+    { id = 154, name = "Khanyisile Dlomo" },
+    { id = 155, name = "Werner Horn" },
+    { id = 156, name = "Lesedi Moagi" },
+    { id = 157, name = "Zaid Hassiem" },
+]
+
+[[org]]
+id = 5
+name = "Fiona Marsh Bookkeeping"
+domain = "marshbookkeeping.co.za"
+email_pattern = "{first}"
+person = [
+    { id = 158, name = "Fiona Marsh" },
+]
+
+[[org]]
+id = 6
+name = "Umhlanga Physio"
+domain = "umhlangaphysio.co.za"
+email_pattern = "{first}.{last}"
+
+[[org]]
+id = 7
+name = "Karoo Group Holdings"
+domain = "karoogroup.co.za"
+email_pattern = "{first}.{last}"
+person = [
+    { id = 159, name = "Marius Oberholzer" },
+    { id = 160, name = "Tracey-Lee Daniels" },
+    { id = 161, name = "Siphesihle Ngema" },
+]
+
+[[org]]
+id = 8
+name = "Karoo Cold Chain"
+domain = "karoogroup.co.za"
+email_pattern = "{first}.{last}"
+person = [
+    { id = 162, name = "Anton Steenkamp" },
+    { id = 163, name = "Lindiwe Zikalala" },
+    { id = 164, name = "Faheem Dawood" },
+    { id = 165, name = "Carmen Titus" },
+]
+
+[[org]]
+id = 9
+name = "Ma'Khumalo's Kitchen & Café"
+domain = "makhumaloskitchen.co.za"
+email_pattern = "{first}"
+person = [
+    { id = 166, name = "Busi Khumalo" },
+    { id = 167, name = "Elrico Julies" },
+    { id = 168, name = "Nomsa Mahlaba" },
+]
