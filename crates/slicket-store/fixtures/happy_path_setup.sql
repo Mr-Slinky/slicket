@@ -1,18 +1,3 @@
--- The happy path fixture fills a migrated database with a tenant, the organisations it serves, and
--- the ticket types and ticket statuses its staff set up. The tenant is Slinky IT, and each
--- organisation after it has its own set of people.
---
--- Every row states its own id. Each id column is GENERATED ALWAYS, meaning PostgreSQL accepts a
--- stated id only from an INSERT that says OVERRIDING SYSTEM VALUE.
---
--- Each organisation takes an INSERT for its org row. A second INSERT beneath it adds the
--- organisation's people, giving each one a person_id and the org_id of that organisation. The
--- person_id values count up from 1 in file order.
---
--- Every email in the file is unique, ignoring case. The person_email_idx index on person rejects
--- a second copy of an address.
-
--- Slinky IT, the tenant. The tenant table stores the org_id of this one org row.
 INSERT
 INTO org (org_id, name)
 OVERRIDING SYSTEM VALUE
@@ -22,7 +7,6 @@ INSERT
 INTO tenant (org_id)
 VALUES (1);
 
--- Slinky IT's 15 staff, all on slicket.com.
 INSERT
 INTO person (person_id, org_id, name, email)
 OVERRIDING SYSTEM VALUE
@@ -42,7 +26,6 @@ VALUES (1, 1, 'Thandiwe Nkosi', 'thandiwe.nkosi@slicket.com'),
        (14, 1, 'Daniel Fourie', 'daniel.fourie@slicket.com'),
        (15, 1, 'Zanele Khumalo', 'zanele.khumalo@slicket.com');
 
--- Harbourview Dental, a small practice with 12 staff on its own domain.
 INSERT
 INTO org (org_id, name)
 OVERRIDING SYSTEM VALUE
@@ -64,7 +47,6 @@ VALUES (16, 2, 'Nadia Hendricks', 'nadia.hendricks@harbourviewdental.co.za'),
        (26, 2, 'Marco Ferreira', 'marco.ferreira@harbourviewdental.co.za'),
        (27, 2, 'Chloe Adams', 'chloe.adams@harbourviewdental.co.za');
 
--- Oakridge Primary School, a medium-sized school with 30 staff on personal gmail.com addresses.
 INSERT
 INTO org (org_id, name)
 OVERRIDING SYSTEM VALUE
@@ -104,7 +86,6 @@ VALUES (28, 3, 'Elaine Visser', 'elaine.visser@gmail.com'),
        (56, 3, 'Busisiwe Khoza', 'busisiwe.khoza@gmail.com'),
        (57, 3, 'Gavin Meyer', 'gavin.meyer@gmail.com');
 
--- Karoo Freight, a large company with 100 employees on karoofreight.co.za.
 INSERT
 INTO org (org_id, name)
 OVERRIDING SYSTEM VALUE
@@ -185,7 +166,7 @@ VALUES (58, 4, 'Hendrik Coetzee', 'hendrik.coetzee@karoofreight.co.za'),
        (127, 4, 'Jenna Walker', 'jenna.walker@karoofreight.co.za'),
        (128, 4, 'Ayabonga Nqaba', 'ayabonga.nqaba@karoofreight.co.za'),
        (129, 4, 'Pierre Theron', 'pierre.theron@karoofreight.co.za'),
-       (130, 4, 'Mbali Hlongwane', 'mbali.hlongwane@karoofreight.co.za'),
+       (130, 4, 'Mbali Hlongwane', 'mbali.hlongwane@outlook.com'),
        (131, 4, 'Sunil Bhana', 'sunil.bhana@karoofreight.co.za'),
        (132, 4, 'Arno Vermeulen', 'arno.vermeulen@karoofreight.co.za'),
        (133, 4, 'Lindokuhle Shange', 'lindokuhle.shange@karoofreight.co.za'),
@@ -210,11 +191,10 @@ VALUES (58, 4, 'Hendrik Coetzee', 'hendrik.coetzee@karoofreight.co.za'),
        (152, 4, 'Tumelo Mathebula', 'tumelo.mathebula@karoofreight.co.za'),
        (153, 4, 'Duncan Frazer', 'duncan.frazer@karoofreight.co.za'),
        (154, 4, 'Khanyisile Dlomo', 'khanyisile.dlomo@karoofreight.co.za'),
-       (155, 4, 'Werner Horn', 'werner.horn@karoofreight.co.za'),
+       (155, 4, 'Werner Horn', 'werner.horn@gmail.com'),
        (156, 4, 'Lesedi Moagi', 'lesedi.moagi@karoofreight.co.za'),
        (157, 4, 'Zaid Hassiem', 'zaid.hassiem@karoofreight.co.za');
 
--- Fiona Marsh Bookkeeping, a sole trader with one person.
 INSERT
 INTO org (org_id, name)
 OVERRIDING SYSTEM VALUE
@@ -225,14 +205,11 @@ INTO person (person_id, org_id, name, email)
 OVERRIDING SYSTEM VALUE
 VALUES (158, 5, 'Fiona Marsh', 'fiona@marshbookkeeping.co.za');
 
--- Umhlanga Physio, an organisation with no people.
 INSERT
 INTO org (org_id, name)
 OVERRIDING SYSTEM VALUE
 VALUES (6, 'Umhlanga Physio');
 
--- Karoo Group Holdings and Karoo Cold Chain are two separate organisations. Their people share
--- the karoogroup.co.za domain.
 INSERT
 INTO org (org_id, name)
 OVERRIDING SYSTEM VALUE
@@ -258,8 +235,6 @@ VALUES (162, 8, 'Anton Steenkamp', 'anton.steenkamp@karoogroup.co.za'),
        (164, 8, 'Faheem Dawood', 'faheem.dawood@karoogroup.co.za'),
        (165, 8, 'Carmen Titus', 'carmen.titus@karoogroup.co.za');
 
--- Ma'Khumalo's Kitchen & Café. Its name contains two apostrophes, an ampersand and an accented
--- letter. SQL writes each apostrophe inside a string as two. Its staff use first-name emails.
 INSERT
 INTO org (org_id, name)
 OVERRIDING SYSTEM VALUE
@@ -281,7 +256,8 @@ VALUES (1, 'Incident'),
        (4, 'Change'),
        (5, 'Question'),
        (6, 'Hardware & Peripherals'),
-       (7, 'Onboarding');
+       (7, 'Onboarding'),
+       (8, 'Licensing');
 
 INSERT
 INTO ticket_status (status_id, name)
@@ -293,10 +269,6 @@ VALUES (1, 'New'),
        (5, 'Resolved'),
        (6, 'Closed');
 
--- PostgreSQL keeps a counter for each id column and takes the next id from it whenever an INSERT
--- leaves the id out. An INSERT that states its id leaves that counter at its starting value. Each
--- statement below therefore moves one counter to the highest id in its table. The next row a test
--- inserts into that table then takes the id after that one.
 SELECT setval(pg_get_serial_sequence('org', 'org_id'), (SELECT max(org_id) FROM org));
 SELECT setval(pg_get_serial_sequence('person', 'person_id'), (SELECT max(person_id) FROM person));
 SELECT setval(pg_get_serial_sequence('ticket_type', 'ticket_type_id'), (SELECT max(ticket_type_id) FROM ticket_type));
