@@ -13,7 +13,7 @@ database for each test and applies the migrations to it. It then runs each fixtu
 for, starting the test body thereafter. A fixture is a file of plain SQL in
 `crates/slicket-store/fixtures`.
 
-The happy path fixture, `happy_path.sql`, fills that database with a tenant, the organisations the
+The happy path fixture, `happy_path_setup.sql`, fills that database with a tenant, the organisations the
 tenant serves, the people in each organisation, the ticket types and the ticket statuses. Each
 statement, thus far, has been written by hand.
 
@@ -71,7 +71,7 @@ generator takes a fixed seed. As a result, every run prints the same SQL.
 
 ### Tickets written by hand in the fixture
 
-The developer writes each ticket statement into `happy_path.sql`, as the file already does for
+The developer writes each ticket statement into `happy_path_setup.sql`, as the file already does for
 organisations and people.
 
 * Good, because the fixture needs no tool.
@@ -90,7 +90,7 @@ delete functions of `slicket-store`, and each test calls that helper first.
 
 ### A generator that calls `slicket-store`
 
-The tool runs the migrations and `happy_path.sql` on a scratch database. It then calls the functions
+The tool runs the migrations and `happy_path_setup.sql` on a scratch database. It then calls the functions
 of `slicket-store` in the order the script sets, reads the `ticket` table back and writes one
 `INSERT` for each row thereof.
 
@@ -118,6 +118,6 @@ Three details are undecided at the date of this record. A later change to this f
 records each one once the developer settles it.
 
 * The name of the tool and its place in the workspace.
-* Whether the tool's output is appended to `happy_path.sql` or written to a fixture file that the
+* Whether the tool's output is appended to `happy_path_setup.sql` or written to a fixture file that the
   tool owns.
 * What a CI pipeline does with the tool beyond running it.
