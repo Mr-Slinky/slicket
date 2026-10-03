@@ -4,7 +4,6 @@ use std::io;
 use std::fs;
 use std::path::{Path};
 
-
 const PATH: &str = "../slicket-store/fixtures/happy_path_tickets.sql";
 
 /// Main entry point to the file; only public API for the module
