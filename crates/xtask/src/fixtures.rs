@@ -2,7 +2,7 @@
 //!
 //! Each `.toml` file in `slicket-store/fixtures` describes the rows of one fixture: the ticket
 //! types, the ticket statuses, the organisations and the people in each one. It also states which
-//! organisation is the tenant. [`seed_database`] reads every such file and writes a `.sql` file of
+//! organisation is the tenant. [`seed_fixtures`] reads every such file and writes a `.sql` file of
 //! the same name next to it, ready to run once the migrations have been applied.
 
 use crate::sql::Script;
@@ -44,7 +44,7 @@ const FIXTURES_DIR: &str = "../slicket-store/fixtures";
 /// Returns an error if the fixtures folder or a setup file cannot be read, if a setup file fails to
 /// parse, if an organisation puts more people on extra domains than it has people, or if a SQL file
 /// cannot be written.
-pub fn seed_database() -> anyhow::Result<()> {
+pub fn seed_fixtures() -> anyhow::Result<()> {
     for path in find_setup_files()? {
         let sql = build_dml_script(&path)?;
         fs::write(path.with_extension("sql"), sql)?;
