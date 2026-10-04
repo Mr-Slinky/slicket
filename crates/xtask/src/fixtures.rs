@@ -12,9 +12,16 @@ use rand::rngs::ChaCha8Rng;
 use rand::seq::index;
 use serde::Deserialize;
 use std::collections::BTreeMap;
+use std::ffi::OsStr;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+
+// ========================================================================================== \\
+//                                          Modules                                           \\
+// ========================================================================================== \\
+
+mod tickets;
 
 // ========================================================================================== \\
 //                                         Constants                                          \\
@@ -81,6 +88,9 @@ pub fn build_dml_script(path: &Path) -> anyhow::Result<String> {
         "status_id",
         &setup.ticket_status,
     );
+
+    let fixture = path.file_stem().and_then(OsStr::to_str).unwrap_or_default(); // blank if `None`
+    tickets::push_tickets(&mut script, &setup, &tickets::find_tickets(fixture))?;
 
     Ok(script.finalise())
 }
@@ -313,4 +323,29 @@ fn quote(text: &str) -> String {
 /// Returns a `&str` borrowing each `String` in `rows`, the form `Statement::values` accepts.
 fn borrow_all(rows: &[String]) -> Vec<&str> {
     rows.iter().map(String::as_str).collect()
+}
+
+// ========================================================================================== \\
+//                                           Tests                                            \\
+// ========================================================================================== \\
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_dml_script_with_committed_fixtures_returns_file_contents() {
+        let paths = find_setup_files().expect("the fixtures folder should be readable");
+
+        let stale: Vec<PathBuf> = paths
+            .into_iter()
+            .filter(|path| {
+                let expected = build_dml_script(path).expect("the setup file should build");
+                let actual = fs::read_to_string(path.with_extension("sql")).unwrap_or_default();
+                expected != actual
+            })
+            .collect();
+
+        assert!(stale.is_empty(), "stale fixtures, run `cargo xtask`: {stale:?}");
+    }
 }
