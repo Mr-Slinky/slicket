@@ -269,7 +269,60 @@ VALUES (1, 'New'),
        (5, 'Resolved'),
        (6, 'Closed');
 
+INSERT
+INTO ticket (ticket_id, ticket_type_id, status_id, priority, title, raised_by, created_at, closed_at, description)
+OVERRIDING SYSTEM VALUE
+VALUES (1, 1, 1, 216, 'Test Ticket 1', 100, TIMESTAMPTZ '2026-01-09 16:00:00+00', NULL, 'Test Ticket 1'),
+       (2, 1, 2, 220, 'Test Ticket 2', 48, TIMESTAMPTZ '2026-01-12 11:00:00+00', NULL, 'Test Ticket 2'),
+       (3, 1, 3, 54, 'Test Ticket 3', 143, TIMESTAMPTZ '2026-01-06 16:00:00+00', NULL, 'Test Ticket 3'),
+       (4, 1, 4, 66, 'Test Ticket 4', 91, TIMESTAMPTZ '2026-01-10 14:00:00+00', NULL, 'Test Ticket 4'),
+       (5, 1, 5, 176, 'Test Ticket 5', 22, TIMESTAMPTZ '2026-01-18 09:00:00+00', NULL, 'Test Ticket 5'),
+       (6, 1, 6, 35, 'Test Ticket 6', 20, TIMESTAMPTZ '2026-01-10 16:00:00+00', TIMESTAMPTZ '2026-01-14 17:00:00+00', 'Test Ticket 6'),
+       (7, 2, 1, 226, 'Test Ticket 7', 31, TIMESTAMPTZ '2026-01-20 10:00:00+00', NULL, 'Test Ticket 7'),
+       (8, 2, 2, 221, 'Test Ticket 8', 85, TIMESTAMPTZ '2026-01-10 10:00:00+00', NULL, 'Test Ticket 8'),
+       (9, 2, 3, 121, 'Test Ticket 9', 167, TIMESTAMPTZ '2026-01-15 16:00:00+00', NULL, 'Test Ticket 9'),
+       (10, 2, 4, 43, 'Test Ticket 10', 160, TIMESTAMPTZ '2026-01-06 09:00:00+00', NULL, 'Test Ticket 10'),
+       (11, 2, 5, 225, 'Test Ticket 11', 68, TIMESTAMPTZ '2026-01-05 12:00:00+00', NULL, 'Test Ticket 11'),
+       (12, 2, 6, 27, 'Test Ticket 12', 76, TIMESTAMPTZ '2026-01-19 08:00:00+00', TIMESTAMPTZ '2026-01-25 17:00:00+00', 'Test Ticket 12'),
+       (13, 3, 1, 244, 'Test Ticket 13', 55, TIMESTAMPTZ '2026-01-04 15:00:00+00', NULL, 'Test Ticket 13'),
+       (14, 3, 2, 118, 'Test Ticket 14', 141, TIMESTAMPTZ '2026-01-06 09:00:00+00', NULL, 'Test Ticket 14'),
+       (15, 3, 3, 126, 'Test Ticket 15', 34, TIMESTAMPTZ '2026-01-03 08:00:00+00', NULL, 'Test Ticket 15'),
+       (16, 3, 4, 108, 'Test Ticket 16', 48, TIMESTAMPTZ '2026-01-14 10:00:00+00', NULL, 'Test Ticket 16'),
+       (17, 3, 5, 142, 'Test Ticket 17', 29, TIMESTAMPTZ '2026-01-12 08:00:00+00', NULL, 'Test Ticket 17'),
+       (18, 3, 6, 46, 'Test Ticket 18', 96, TIMESTAMPTZ '2026-01-15 10:00:00+00', TIMESTAMPTZ '2026-01-16 17:00:00+00', 'Test Ticket 18'),
+       (19, 4, 1, 112, 'Test Ticket 19', 161, TIMESTAMPTZ '2026-01-20 09:00:00+00', NULL, 'Test Ticket 19'),
+       (20, 4, 2, 6, 'Test Ticket 20', 112, TIMESTAMPTZ '2026-01-12 15:00:00+00', NULL, 'Test Ticket 20'),
+       (21, 4, 3, 38, 'Test Ticket 21', 104, TIMESTAMPTZ '2026-01-01 16:00:00+00', NULL, 'Test Ticket 21'),
+       (22, 4, 4, 20, 'Test Ticket 22', 74, TIMESTAMPTZ '2026-01-14 12:00:00+00', NULL, 'Test Ticket 22'),
+       (23, 4, 5, 45, 'Test Ticket 23', 157, TIMESTAMPTZ '2026-01-02 11:00:00+00', NULL, 'Test Ticket 23'),
+       (24, 4, 6, 111, 'Test Ticket 24', 111, TIMESTAMPTZ '2026-01-04 10:00:00+00', TIMESTAMPTZ '2026-01-05 17:00:00+00', 'Test Ticket 24'),
+       (25, 5, 1, 211, 'Test Ticket 25', 115, TIMESTAMPTZ '2026-01-12 13:00:00+00', NULL, 'Test Ticket 25'),
+       (26, 5, 2, 253, 'Test Ticket 26', 125, TIMESTAMPTZ '2026-01-07 13:00:00+00', NULL, 'Test Ticket 26'),
+       (27, 5, 3, 251, 'Test Ticket 27', 168, TIMESTAMPTZ '2026-01-20 16:00:00+00', NULL, 'Test Ticket 27'),
+       (28, 5, 4, 201, 'Test Ticket 28', 167, TIMESTAMPTZ '2026-01-15 10:00:00+00', NULL, 'Test Ticket 28'),
+       (29, 5, 5, 77, 'Test Ticket 29', 124, TIMESTAMPTZ '2026-01-13 11:00:00+00', NULL, 'Test Ticket 29'),
+       (30, 5, 6, 152, 'Test Ticket 30', 142, TIMESTAMPTZ '2026-01-13 16:00:00+00', TIMESTAMPTZ '2026-01-16 17:00:00+00', 'Test Ticket 30'),
+       (31, 6, 1, 45, 'Test Ticket 31', 115, TIMESTAMPTZ '2026-01-15 13:00:00+00', NULL, 'Test Ticket 31'),
+       (32, 6, 2, 90, 'Test Ticket 32', 25, TIMESTAMPTZ '2026-01-10 10:00:00+00', NULL, 'Test Ticket 32'),
+       (33, 6, 3, 30, 'Test Ticket 33', 80, TIMESTAMPTZ '2026-01-17 11:00:00+00', NULL, 'Test Ticket 33'),
+       (34, 6, 4, 238, 'Test Ticket 34', 71, TIMESTAMPTZ '2026-01-06 10:00:00+00', NULL, 'Test Ticket 34'),
+       (35, 6, 5, 77, 'Test Ticket 35', 106, TIMESTAMPTZ '2026-01-02 10:00:00+00', NULL, 'Test Ticket 35'),
+       (36, 6, 6, 159, 'Test Ticket 36', 152, TIMESTAMPTZ '2026-01-04 13:00:00+00', TIMESTAMPTZ '2026-01-10 17:00:00+00', 'Test Ticket 36'),
+       (37, 7, 1, 142, 'Test Ticket 37', 74, TIMESTAMPTZ '2026-01-13 14:00:00+00', NULL, 'Test Ticket 37'),
+       (38, 7, 2, 128, 'Test Ticket 38', 159, TIMESTAMPTZ '2026-01-06 09:00:00+00', NULL, 'Test Ticket 38'),
+       (39, 7, 3, 70, 'Test Ticket 39', 116, TIMESTAMPTZ '2026-01-11 08:00:00+00', NULL, 'Test Ticket 39'),
+       (40, 7, 4, 39, 'Test Ticket 40', 33, TIMESTAMPTZ '2026-01-06 16:00:00+00', NULL, 'Test Ticket 40'),
+       (41, 7, 5, 146, 'Test Ticket 41', 123, TIMESTAMPTZ '2026-01-03 16:00:00+00', NULL, 'Test Ticket 41'),
+       (42, 7, 6, 119, 'Test Ticket 42', 89, TIMESTAMPTZ '2026-01-18 11:00:00+00', TIMESTAMPTZ '2026-01-25 17:00:00+00', 'Test Ticket 42'),
+       (43, 8, 1, 10, 'Test Ticket 43', 26, TIMESTAMPTZ '2026-01-07 15:00:00+00', NULL, 'Test Ticket 43'),
+       (44, 8, 2, 100, 'Test Ticket 44', 162, TIMESTAMPTZ '2026-01-04 16:00:00+00', NULL, 'Test Ticket 44'),
+       (45, 8, 3, 165, 'Test Ticket 45', 35, TIMESTAMPTZ '2026-01-09 08:00:00+00', NULL, 'Test Ticket 45'),
+       (46, 8, 4, 125, 'Test Ticket 46', 20, TIMESTAMPTZ '2026-01-05 13:00:00+00', NULL, 'Test Ticket 46'),
+       (47, 8, 5, 246, 'Test Ticket 47', 125, TIMESTAMPTZ '2026-01-13 15:00:00+00', NULL, 'Test Ticket 47'),
+       (48, 8, 6, 16, 'Test Ticket 48', 163, TIMESTAMPTZ '2026-01-04 14:00:00+00', TIMESTAMPTZ '2026-01-06 17:00:00+00', 'Test Ticket 48');
+
 SELECT setval(pg_get_serial_sequence('org', 'org_id'), (SELECT max(org_id) FROM org));
 SELECT setval(pg_get_serial_sequence('person', 'person_id'), (SELECT max(person_id) FROM person));
 SELECT setval(pg_get_serial_sequence('ticket_type', 'ticket_type_id'), (SELECT max(ticket_type_id) FROM ticket_type));
 SELECT setval(pg_get_serial_sequence('ticket_status', 'status_id'), (SELECT max(status_id) FROM ticket_status));
+SELECT setval(pg_get_serial_sequence('ticket', 'ticket_id'), (SELECT max(ticket_id) FROM ticket));

@@ -1,32 +1,43 @@
 use super::{NamedRow, Setup, borrow_all, quote};
 use crate::sql::Script;
-use anyhow::{Context, ensure};
+use anyhow::Context;
+use rand::rngs::ChaCha8Rng;
+use rand::seq::IndexedRandom;
+use rand::{RngExt, SeedableRng};
 use std::fmt::{self, Display, Formatter};
+
+// ========================================================================================== \\
+//                                         Constants                                          \\
+// ========================================================================================== \\
 
 const DEFAULT_PRIORITY: u8 = 128;
 
-pub(super) const FIXTURES: &[(&str, fn() -> Vec<Ticket>)] = &[
+const HAPPY_PATH_SEED: u64 = 1;
+
+pub(super) const FIXTURES: &[(&str, fn(&Setup) -> Vec<Ticket<'_>>)] = &[
     ("happy_path_setup", build_happy_path),
 ];
 
-pub(super) struct Ticket {
-    scenarios: &'static [&'static str],
-    org: &'static str,
-    raised_by: &'static str,
-    ticket_type: &'static str,
-    status: &'static str,
+// ========================================================================================== \\
+//                                         Public API                                         \\
+// ========================================================================================== \\
+
+pub(super) struct Ticket<'a> {
+    org: &'a str,
+    raised_by: &'a str,
+    ticket_type: &'a str,
+    status: &'a str,
     priority: u8,
-    title: &'static str,
+    title: String,
     created_at: Moment,
     closed_at: Option<Moment>,
-    description: Option<&'static str>,
+    description: Option<String>,
     changes: Vec<Change>,
 }
 
-impl Ticket {
-    fn base(org: &'static str, raised_by: &'static str, title: &'static str) -> Self {
+impl<'a> Ticket<'a> {
+    fn base(org: &'a str, raised_by: &'a str, title: String) -> Self {
         Self {
-            scenarios: &[],
             org,
             raised_by,
             ticket_type: "Incident",
@@ -41,9 +52,9 @@ impl Ticket {
     }
 }
 
-pub(super) fn find_tickets(fixture: &str) -> Vec<Ticket> {
+pub(super) fn find_tickets<'a>(fixture: &str, setup: &'a Setup) -> Vec<Ticket<'a>> {
     match fixture {
-        "happy_path_setup" => build_happy_path(),
+        "happy_path_setup" => build_happy_path(setup),
         _ => Vec::new(),
     }
 }
@@ -51,7 +62,7 @@ pub(super) fn find_tickets(fixture: &str) -> Vec<Ticket> {
 pub(super) fn push_tickets(
     script: &mut Script,
     setup: &Setup,
-    tickets: &[Ticket],
+    tickets: &[Ticket<'_>],
 ) -> anyhow::Result<()> {
     if tickets.is_empty() {
         return Ok(());
@@ -88,6 +99,10 @@ pub(super) fn push_tickets(
     Ok(())
 }
 
+// ========================================================================================== \\
+//                                          Helpers                                           \\
+// ========================================================================================== \\
+
 enum Change {
     Status(&'static str),
     Title(&'static str),
@@ -118,88 +133,66 @@ fn at(day: u8, hour: u8) -> Moment {
     Moment { day, hour }
 }
 
-fn build_happy_path() -> Vec<Ticket> {
-    vec![
-        Ticket {
-            scenarios: &["LC-01"],
-            created_at: at(5, 8),
-            ..Ticket::base(
-                "Harbourview Dental",
-                "Nadia Hendricks",
-                "Front desk printer shows a paper jam",
-            )
-        },
-        Ticket {
-            scenarios: &["LC-02"],
-            ticket_type: "Hardware & Peripherals",
-            status: "In Progress",
-            created_at: at(2, 10),
-            ..Ticket::base(
-                "Oakridge Primary School",
-                "Elaine Visser",
-                "Staff room projector has no signal",
-            )
-        },
-        Ticket {
-            scenarios: &["LC-03"],
-            ticket_type: "Service Request",
-            status: "Waiting on Customer",
-            created_at: at(3, 11),
-            ..Ticket::base(
-                "Karoo Freight",
-                "Hendrik Coetzee",
-                "Access to the shared finance folder",
-            )
-        },
-        Ticket {
-            scenarios: &["LC-04"],
-            status: "Waiting on Third Party",
-            created_at: at(3, 14),
-            ..Ticket::base("Karoo Freight", "Jason Naicker", "Fibre line at the depot is down")
-        },
-        Ticket {
-            scenarios: &["LC-05"],
-            ticket_type: "Service Request",
-            status: "Resolved",
-            created_at: at(4, 9),
-            ..Ticket::base(
-                "Harbourview Dental",
-                "Craig Williams",
-                "Set up email on a new phone",
-            )
-        },
-        Ticket {
-            scenarios: &["LC-06"],
-            ticket_type: "Onboarding",
-            status: "Closed",
-            closed_at: Some(at(2, 16)),
-            ..Ticket::base(
-                "Oakridge Primary School",
-                "Themba Cele",
-                "Laptop and accounts for a new teacher",
-            )
-        },
-    ]
+fn build_happy_path(setup: &Setup) -> Vec<Ticket<'_>> {
+    let mut rng = ChaCha8Rng::seed_from_u64(HAPPY_PATH_SEED);
+    let customers: Vec<(&str, &str)> = setup
+        .org
+        .iter()
+        .filter(|org| org.id != setup.tenant.org_id)
+        .flat_map(|org| {
+            org.person
+                .iter()
+                .map(move |person| (org.name.as_str(), person.name.as_str()))
+        })
+        .collect();
+
+    let pairs = setup.ticket_type.iter().flat_map(|ticket_type| {
+        setup
+            .ticket_status
+            .iter()
+            .map(move |status| (ticket_type, status))
+    });
+
+    (1..)
+        .zip(pairs)
+        .map(|(number, (ticket_type, status))| {
+            let &(org, raised_by) = customers
+                .choose(&mut rng)
+                .expect("the setup file should list a person outside the tenant");
+            let created_at = at(rng.random_range(1..=20), rng.random_range(8..=16));
+            let closed_at =
+                (status.name == "Closed").then(|| at(created_at.day + rng.random_range(0..=7), 17));
+            let title = format!("Test Ticket {number}");
+
+            Ticket {
+                ticket_type: &ticket_type.name,
+                status: &status.name,
+                priority: rng.random(),
+                created_at,
+                closed_at,
+                description: Some(title.clone()),
+                ..Ticket::base(org, raised_by, title)
+            }
+        })
+        .collect()
 }
 
-fn build_row(setup: &Setup, ticket_id: i32, ticket: &Ticket) -> anyhow::Result<String> {
-    ensure!(
-        !ticket.scenarios.is_empty(),
-        "ticket {ticket_id} lists no scenarios"
-    );
-
+fn build_row(setup: &Setup, ticket_id: i32, ticket: &Ticket<'_>) -> anyhow::Result<String> {
     let ticket_type_id = find_id(&setup.ticket_type, "ticket type", ticket.ticket_type)?;
     let status_id = find_id(&setup.ticket_status, "ticket status", ticket.status)?;
     let raised_by = find_person(setup, ticket.org, ticket.raised_by)?;
     let closed_at = ticket
         .closed_at
         .map_or_else(|| "NULL".to_owned(), |moment| moment.to_string());
-    let description = ticket.description.map_or_else(|| "NULL".to_owned(), quote);
+    let description = ticket
+        .description
+        .as_deref()
+        .map_or_else(|| "NULL".to_owned(), quote);
 
     Ok(format!(
         "{ticket_id}, {ticket_type_id}, {status_id}, {}, {}, {raised_by}, {}, {closed_at}, {description}",
         ticket.priority,
-        quote(ticket.title),
+        quote(&ticket.title),
         ticket.created_at,
     ))
 }

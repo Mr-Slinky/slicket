@@ -90,7 +90,7 @@ pub fn build_dml_script(path: &Path) -> anyhow::Result<String> {
     );
 
     let fixture = path.file_stem().and_then(OsStr::to_str).unwrap_or_default(); // blank if `None`
-    tickets::push_tickets(&mut script, &setup, &tickets::find_tickets(fixture))?;
+    tickets::push_tickets(&mut script, &setup, &tickets::find_tickets(fixture, &setup))?;
 
     Ok(script.finalise())
 }
