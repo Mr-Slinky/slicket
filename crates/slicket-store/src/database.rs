@@ -146,4 +146,30 @@ mod tests {
             "tables missing after migration: {missing:?}"
         );
     }
+
+    #[sqlx::test(fixtures(path = "../fixtures", scripts("happy_path_setup")))]
+    async fn test_happy_path_fixture_with_migrated_db_inserts_expected_rows(pool: PgPool) {
+        // Arrange
+        let expected = [
+            ("org", 9),
+            ("tenant", 1),
+            ("person", 168),
+            ("ticket_type", 8),
+            ("ticket_status", 6),
+            ("ticket", 48),
+        ];
+
+        // Act
+        let mut found = Vec::with_capacity(expected.len());
+        for (table, _) in expected {
+            let count: i64 = sqlx::query_scalar(&format!("SELECT count(*) FROM {table}"))
+                .fetch_one(&pool)
+                .await
+                .expect("the row count query should succeed");
+            found.push((table, count));
+        }
+
+        // Assert
+        assert_eq!(found, expected);
+    }
 }
