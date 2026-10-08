@@ -156,7 +156,7 @@ mod tests {
             ("person", 168),
             ("ticket_type", 8),
             ("ticket_status", 6),
-            ("ticket", 48),
+            ("ticket", 12),
         ];
 
         // Act
