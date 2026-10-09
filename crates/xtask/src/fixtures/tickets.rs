@@ -798,3 +798,44 @@ fn find_person(setup: &Setup, org: &str, name: &str) -> anyhow::Result<i32> {
         .map(|person| person.id)
         .with_context(|| format!("{org} has no person called {name}"))
 }
+
+// ========================================================================================== \\
+//                                           Tests                                            \\
+// ========================================================================================== \\
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_find_final_status_with_several_status_changes_returns_last_status() {
+        let ticket = Ticket {
+            changes: vec![
+                Change::Status("In Progress"),
+                Change::Status("Waiting on Customer"),
+                Change::Status("Resolved"),
+            ],
+            ..Ticket::base("Karoo Freight", "Werner Horn", "Printer offline".to_owned())
+        };
+        let expected = "Resolved";
+
+        let actual = ticket.find_final_status();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_find_final_priority_with_priority_change_returns_changed_priority() {
+        let ticket = Ticket {
+            priority: 64,
+            changes: vec![Change::Priority(192)],
+            ..Ticket::base("Karoo Freight", "Werner Horn", "Printer offline".to_owned())
+        };
+        let expected = 192;
+
+        let actual = ticket.find_final_priority();
+
+        assert_eq!(expected, actual);
+    }
+
+}

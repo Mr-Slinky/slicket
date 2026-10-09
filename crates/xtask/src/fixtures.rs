@@ -348,4 +348,59 @@ mod tests {
 
         assert!(stale.is_empty(), "stale fixtures, run `cargo xtask`: {stale:?}");
     }
+
+    #[test]
+    fn test_build_email_with_multi_word_surname_returns_joined_surname() {
+        let expected = "pieter.vandermerwe@slicket.com";
+
+        let actual = build_email("Pieter van der Merwe", "{first}.{last}", "slicket.com");
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_build_email_with_apostrophe_returns_address_without_apostrophe() {
+        let expected = "megan.oconnor@slicket.com";
+
+        let actual = build_email("Megan O'Connor", "{first}.{last}", "slicket.com");
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_quote_with_plain_text_returns_quoted_literal() {
+        let expected = "'Incident'";
+
+        let actual = quote("Incident");
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_quote_with_apostrophe_returns_doubled_apostrophe() {
+        let expected = "'O''Connor'";
+
+        let actual = quote("O'Connor");
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_assign_domains_with_more_outliers_than_people_returns_error() {
+        let org = Org {
+            id: 1,
+            name: "Karoo Freight".to_owned(),
+            domain: "karoofreight.co.za".to_owned(),
+            email_pattern: "{first}.{last}".to_owned(),
+            extra_domains: BTreeMap::from([("gmail.com".to_owned(), 2)]),
+            person: vec![NamedRow {
+                id: 1,
+                name: "Werner Horn".to_owned(),
+            }],
+        };
+
+        let result = assign_domains(&org);
+
+        assert!(result.is_err());
+    }
 }
