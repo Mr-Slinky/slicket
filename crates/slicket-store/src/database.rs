@@ -172,4 +172,99 @@ mod tests {
         // Assert
         assert_eq!(found, expected);
     }
+
+    #[sqlx::test(fixtures(path = "../fixtures", scripts("happy_path_setup")))]
+    async fn test_happy_path_fixture_with_migrated_db_realises_scenarios(pool: PgPool) {
+        // Arrange
+        // Pairs each scenario ID from docs/fixtures/ticket-scenarios.md with a query that returns
+        // true when the loaded fixture realises it. The table stores each ticket's current state
+        // alone, which is why LC-01 checks the status and CHG-01 has no query
+        let scenarios = [
+            ("LC-01", r"SELECT EXISTS (SELECT 1 FROM ticket JOIN ticket_status USING (status_id)
+                         WHERE name = 'New' AND closed_at IS NULL)"),
+            ("LC-02", r"SELECT EXISTS (SELECT 1 FROM ticket JOIN ticket_status USING (status_id)
+                         WHERE name = 'In Progress' AND closed_at IS NULL)"),
+            ("LC-03", r"SELECT EXISTS (SELECT 1 FROM ticket JOIN ticket_status USING (status_id)
+                         WHERE name = 'Waiting on Customer')"),
+            ("LC-04", r"SELECT EXISTS (SELECT 1 FROM ticket JOIN ticket_status USING (status_id)
+                         WHERE name = 'Waiting on Third Party')"),
+            ("LC-05", r"SELECT EXISTS (SELECT 1 FROM ticket JOIN ticket_status USING (status_id)
+                         WHERE name = 'Resolved' AND closed_at IS NULL)"),
+            ("LC-06", r"SELECT EXISTS (SELECT 1 FROM ticket JOIN ticket_status USING (status_id)
+                         WHERE name = 'Closed' AND closed_at > created_at)"),
+            ("FLD-01", r"SELECT EXISTS (SELECT 1 FROM ticket WHERE priority = 0)"),
+            ("FLD-02", r"SELECT EXISTS (SELECT 1 FROM ticket WHERE priority = 255)"),
+            ("FLD-03", r"SELECT EXISTS (SELECT 1 FROM ticket GROUP BY priority HAVING count(*) > 1)"),
+            ("FLD-04", r"SELECT EXISTS (SELECT 1 FROM ticket GROUP BY created_at HAVING count(*) > 1)"),
+            ("FLD-05", r"SELECT EXISTS (SELECT 1 FROM ticket JOIN ticket_status USING (status_id)
+                          WHERE name = 'Closed' AND closed_at = created_at)"),
+            ("FLD-06", r"SELECT EXISTS (SELECT 1 FROM ticket WHERE title LIKE '%''%')"),
+            ("FLD-07", r"SELECT EXISTS (SELECT 1 FROM ticket
+                          WHERE title = 'Café till prints résumé names wrongly ☕')"),
+            ("FLD-08", r"SELECT EXISTS (SELECT 1 FROM ticket WHERE length(title) > 1000)"),
+            ("FLD-10", r"SELECT EXISTS (SELECT 1 FROM ticket WHERE description IS NULL)"),
+            ("FLD-12", r"SELECT EXISTS (SELECT 1 FROM ticket WHERE strpos(description, chr(10)) > 0)"),
+            ("PER-01", r"SELECT EXISTS (SELECT 1 FROM ticket t
+                          JOIN person p ON p.person_id = t.raised_by
+                          JOIN tenant USING (org_id))"),
+            ("PER-02", r"SELECT EXISTS (SELECT 1 FROM ticket t
+                          JOIN person p ON p.person_id = t.raised_by
+                          JOIN org o USING (org_id)
+                          WHERE o.name = 'Fiona Marsh Bookkeeping' AND p.name = 'Fiona Marsh'
+                            AND (SELECT count(*) FROM person WHERE org_id = o.org_id) = 1)"),
+            ("PER-03", r"SELECT count(DISTINCT p.person_id) = 2 FROM ticket t
+                          JOIN person p ON p.person_id = t.raised_by
+                          WHERE p.name = 'Chloe Adams'"),
+            ("PER-04", r"SELECT count(DISTINCT p.person_id) = 2 FROM ticket t
+                          JOIN person p ON p.person_id = t.raised_by
+                          WHERE p.name = 'Sipho Dlamini'"),
+            ("PER-05", r"SELECT count(DISTINCT o.org_id) = 2 FROM ticket t
+                          JOIN person p ON p.person_id = t.raised_by
+                          JOIN org o USING (org_id)
+                          WHERE o.name IN ('Karoo Group Holdings', 'Karoo Cold Chain')"),
+            ("PER-06", r"SELECT EXISTS (SELECT 1 FROM ticket t
+                          JOIN person p ON p.person_id = t.raised_by
+                          JOIN org o USING (org_id)
+                          WHERE o.name = 'Karoo Freight' AND p.email LIKE '%@gmail.com')"),
+            ("PER-07", r"SELECT EXISTS (SELECT 1 FROM ticket GROUP BY raised_by HAVING count(*) >= 3)"),
+            ("PER-08", r"SELECT EXISTS (SELECT 1 FROM person p
+                          WHERE NOT EXISTS (SELECT 1 FROM ticket t WHERE t.raised_by = p.person_id))"),
+            ("PER-09", r"SELECT EXISTS (SELECT 1 FROM org o
+                          WHERE NOT EXISTS (SELECT 1 FROM ticket t
+                                            JOIN person p ON p.person_id = t.raised_by
+                                            WHERE p.org_id = o.org_id))"),
+            ("LKP-01", r"SELECT NOT EXISTS (SELECT 1 FROM ticket_status s
+                          WHERE NOT EXISTS (SELECT 1 FROM ticket t WHERE t.status_id = s.status_id))"),
+            ("LKP-02", r"SELECT EXISTS (SELECT 1 FROM ticket_type y
+                          WHERE NOT EXISTS (SELECT 1 FROM ticket t
+                                            WHERE t.ticket_type_id = y.ticket_type_id))"),
+            // Checks that the inserted title is gone as well as that the edited one is present
+            ("CHG-02", r"SELECT NOT EXISTS (SELECT 1 FROM ticket WHERE title = 'Printer offline')
+                            AND EXISTS (SELECT 1 FROM ticket
+                                        WHERE title = 'Printer offline in reception')"),
+            // Checks that no ticket keeps the inserted priority of 64
+            ("CHG-03", r"SELECT NOT EXISTS (SELECT 1 FROM ticket WHERE priority = 64)
+                            AND EXISTS (SELECT 1 FROM ticket WHERE priority = 192)"),
+            // Checks the lowered priority alone, since CHG-03 also leaves a ticket at 192
+            ("CHG-04", r"SELECT EXISTS (SELECT 1 FROM ticket WHERE priority = 32)"),
+            ("CHG-05", r"SELECT EXISTS (SELECT 1
+                          FROM generate_series(1, (SELECT max(ticket_id) FROM ticket)) AS g(id)
+                          WHERE NOT EXISTS (SELECT 1 FROM ticket t WHERE t.ticket_id = g.id))"),
+        ];
+
+        // Act
+        let mut failed = Vec::new();
+        for (id, query) in scenarios {
+            let realised: bool = sqlx::query_scalar(query)
+                .fetch_one(&pool)
+                .await
+                .unwrap_or_else(|e| panic!("the query for {id} should succeed: {e}"));
+            if !realised {
+                failed.push(id);
+            }
+        }
+
+        // Assert
+        assert!(failed.is_empty(), "scenarios missing from the fixture: {failed:?}");
+    }
 }
