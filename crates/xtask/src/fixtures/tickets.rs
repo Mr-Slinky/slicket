@@ -1,3 +1,30 @@
+//! Builds the tickets of each SQL fixture and appends the statements that write them to a
+//! [`Script`].
+//!
+//! The setup file of a fixture lists its organisations, people, ticket types and ticket statuses.
+//! The tickets come from the code in this module, and each one refers to those rows by name. A
+//! caller asks [`find_tickets`] for the tickets of a fixture, then hands them to [`push_tickets`]:
+//!
+//! ```ignore
+//! let tickets = tickets::find_tickets("happy_path_setup", &setup)?;
+//! tickets::push_tickets(&mut script, &setup, &tickets)?;
+//! ```
+//!
+//! [`push_tickets`] appends one `INSERT` for every ticket. An `UPDATE` or a `DELETE` follows for
+//! each change that a ticket records, meaning the fixture also contains tickets edited after
+//! creation.
+//!
+//! # The happy path tickets
+//!
+//! The happy path tickets realise the scenarios in `docs/fixtures/ticket-scenarios.md`. Each
+//! scenario that one ticket can realise becomes a [`Rule`] in [`HAPPY_PATH_RULES`]. A rule sets
+//! some fields of a ticket, and two rules share a ticket where they set different fields. As a
+//! result, the fixture has far fewer tickets than rules.
+//!
+//! Some scenarios describe the whole set of tickets rather than any one ticket, such as `LKP-01`,
+//! which needs every status on some ticket. [`check_happy_path`] confirms those once the rules
+//! have been applied, and the build fails if one of them is unmet.
+
 use super::{NamedRow, Setup, assign_domains, borrow_all, quote};
 use crate::sql::Script;
 use anyhow::{Context, ensure};
@@ -11,13 +38,18 @@ use std::fmt::{self, Display, Formatter};
 //                                         Constants                                          \\
 // ========================================================================================== \\
 
+/// The priority a ticket takes where no rule sets one, halfway along the range from 0 to 255.
 const DEFAULT_PRIORITY: u8 = 128;
 
+/// The seed of the generator that picks the customer, ticket type and creation time of each new
+/// happy path ticket. A fixed seed means every run writes the same tickets.
 const HAPPY_PATH_SEED: u64 = 1;
 
 /// The ticket type that no happy path ticket refers to, which realises `LKP-02`.
 const UNUSED_TICKET_TYPE: &str = "Licensing";
 
+/// Each fixture that has tickets, as the stem of its setup file paired with the function that
+/// builds its tickets.
 pub(super) const FIXTURES: &[(&str, BuildTickets)] = &[
     ("happy_path_setup", build_happy_path),
 ];
@@ -226,20 +258,41 @@ const HAPPY_PATH_RULES: &[Rule] = &[
 //                                         Public API                                         \\
 // ========================================================================================== \\
 
+/// One row of the `ticket` table, together with the changes the script makes to that row after
+/// inserting it.
+///
+/// A ticket refers to its organisation, person, ticket type and status by the names the setup
+/// file gives them. [`push_tickets`] looks up the id behind each name as it writes the row.
 pub(super) struct Ticket<'a> {
+    /// The name of the organisation that the person in `raised_by` belongs to.
     org: &'a str,
+    /// The name of the person who raised the ticket. Two organisations can each have a person of
+    /// the same name, which is why `org` and `raised_by` together identify the person.
     raised_by: &'a str,
+    /// The name of the ticket type.
     ticket_type: &'a str,
+    /// The name of the status the `INSERT` writes. A [`Change::Status`] in `changes` replaces it
+    /// later in the script.
     status: &'a str,
+    /// The priority the `INSERT` writes, from 0 to 255. A [`Change::Priority`] in `changes`
+    /// replaces it later in the script.
     priority: u8,
     title: String,
     created_at: Moment,
+    /// The closing time, written as `NULL` where it is `None`.
     closed_at: Option<Moment>,
+    /// The description, written as `NULL` where it is `None`.
     description: Option<String>,
+    /// The changes the script makes to the ticket once every ticket has been inserted, in the
+    /// order they run.
     changes: Vec<Change>,
 }
 
 impl<'a> Ticket<'a> {
+    /// Returns a ticket raised by `raised_by` in `org` and titled `title`.
+    ///
+    /// The ticket is an `Incident` in status `New` with [`DEFAULT_PRIORITY`], created at 09:00 on
+    /// 1 January. It has no closing time, no description and no changes.
     fn base(org: &'a str, raised_by: &'a str, title: String) -> Self {
         Self {
             org,
@@ -255,7 +308,9 @@ impl<'a> Ticket<'a> {
         }
     }
 
-    /// Returns the status the ticket holds once the script has applied all of its changes.
+    /// Returns the status the ticket ends in once the script has applied all of its changes.
+    ///
+    /// The last [`Change::Status`] in `changes` decides it. With none, the result is `status`.
     fn find_final_status(&self) -> &str {
         self.changes
             .iter()
@@ -267,7 +322,10 @@ impl<'a> Ticket<'a> {
             .unwrap_or(self.status)
     }
 
-    /// Returns the priority the ticket holds once the script has applied all of its changes.
+    /// Returns the priority the ticket ends with once the script has applied all of its changes.
+    ///
+    /// The last [`Change::Priority`] in `changes` decides it. With none, the result is
+    /// `priority`.
     fn find_final_priority(&self) -> u8 {
         self.changes
             .iter()
@@ -279,6 +337,8 @@ impl<'a> Ticket<'a> {
             .unwrap_or(self.priority)
     }
 
+    /// Returns `true` if `changes` contains [`Change::Delete`], meaning the script deletes the
+    /// ticket after inserting it.
     fn is_deleted(&self) -> bool {
         self.changes
             .iter()
@@ -286,6 +346,15 @@ impl<'a> Ticket<'a> {
     }
 }
 
+/// Returns the tickets of the fixture whose setup file has the stem `fixture`, such as
+/// `happy_path_setup`.
+///
+/// A fixture with no tickets of its own returns an empty list.
+///
+/// # Errors
+///
+/// Returns an error if the setup file lacks the people or ticket types the happy path tickets need,
+/// or if those tickets fail to realise one of their scenarios.
 pub(super) fn find_tickets<'a>(fixture: &str, setup: &'a Setup) -> anyhow::Result<Vec<Ticket<'a>>> {
     match fixture {
         "happy_path_setup" => build_happy_path(setup),
@@ -293,6 +362,17 @@ pub(super) fn find_tickets<'a>(fixture: &str, setup: &'a Setup) -> anyhow::Resul
     }
 }
 
+/// Appends one `INSERT` that writes every ticket in `tickets` to the `ticket` table, followed by
+/// one statement for each of their changes.
+///
+/// The tickets take ids from 1 upwards, in the order `tickets` lists them. The changes come after
+/// the `INSERT`, ticket by ticket, each one an `UPDATE` or a `DELETE` of that ticket's row. An
+/// empty `tickets` adds nothing to the script, since an `INSERT` needs at least one row.
+///
+/// # Errors
+///
+/// Returns an error if a ticket refers to an organisation, person, ticket type or status that
+/// `setup` lacks.
 pub(super) fn push_tickets(
     script: &mut Script,
     setup: &Setup,
@@ -337,14 +417,19 @@ pub(super) fn push_tickets(
 //                                          Helpers                                           \\
 // ========================================================================================== \\
 
+/// A function that builds the tickets of one fixture from its setup file.
 type BuildTickets = fn(&Setup) -> anyhow::Result<Vec<Ticket<'_>>>;
 
 /// One scenario, as a change to a ticket and the fields that change touches.
 ///
 /// Two rules can share a ticket where their fields do not overlap.
 struct Rule {
+    /// The ID of the scenario in `docs/fixtures/ticket-scenarios.md`, which an error cites when no
+    /// ticket can be opened for the rule.
     scenario: &'static str,
+    /// The fields that `apply` sets, which the rule claims on its ticket.
     fields: &'static [Field],
+    /// Sets the fields in `fields` on the ticket the rule lands on.
     apply: fn(&mut Ticket<'_>),
 }
 
@@ -352,7 +437,9 @@ struct Rule {
 /// no two rules add changes to the same ticket.
 #[derive(Clone, Copy, PartialEq)]
 enum Field {
+    /// The organisation and the person who raised the ticket, set together.
     Raiser,
+    /// The ticket type.
     Type,
     Status,
     Priority,
@@ -360,6 +447,7 @@ enum Field {
     CreatedAt,
     ClosedAt,
     Description,
+    /// The whole list in [`Ticket::changes`].
     Changes,
 }
 
@@ -378,19 +466,27 @@ impl Field {
     ];
 }
 
+/// A change the script makes to a ticket after inserting it.
 enum Change {
+    /// An `UPDATE` that moves the ticket to the status with this name.
     Status(&'static str),
+    /// An `UPDATE` that replaces the title with this one.
     Title(&'static str),
+    /// An `UPDATE` that replaces the priority with this one.
     Priority(u8),
+    /// A `DELETE` of the ticket's row.
     Delete,
 }
 
+/// An hour on a day in January 2026, in UTC. [`at`] creates one.
 #[derive(Clone, Copy)]
 struct Moment {
     day: u8,
     hour: u8,
 }
 
+/// Writes the moment as a PostgreSQL `TIMESTAMPTZ` literal, such as
+/// `TIMESTAMPTZ '2026-01-05 09:00:00+00'`.
 impl Display for Moment {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
@@ -401,6 +497,11 @@ impl Display for Moment {
     }
 }
 
+/// Returns the moment at `hour` o'clock on `day` January 2026, in UTC.
+///
+/// # Panics
+///
+/// Panics if `day` is outside 1 to 31, or if `hour` is outside 0 to 23.
 fn at(day: u8, hour: u8) -> Moment {
     assert!((1..=31).contains(&day), "day {day} is outside January");
     assert!(hour < 24, "hour {hour} is outside 0 to 23");
@@ -408,6 +509,7 @@ fn at(day: u8, hour: u8) -> Moment {
     Moment { day, hour }
 }
 
+/// Sets `ticket` as raised by the person called `raised_by` in the organisation called `org`.
 fn raise_by(ticket: &mut Ticket<'_>, org: &'static str, raised_by: &'static str) {
     ticket.org = org;
     ticket.raised_by = raised_by;
@@ -419,8 +521,14 @@ fn raise_by(ticket: &mut Ticket<'_>, org: &'static str, raised_by: &'static str)
 /// Each rule goes on the first ticket whose claimed fields it leaves alone, or on a new ticket
 /// where none fits. A new ticket takes a random customer, ticket type and creation time from a
 /// generator with a fixed seed, meaning every run writes the same rows.
+///
+/// # Errors
+///
+/// Returns an error if `setup` lists no person outside the tenant or no ticket type besides
+/// [`UNUSED_TICKET_TYPE`], or if [`check_happy_path`] finds a scenario the tickets fail to realise.
 fn build_happy_path(setup: &Setup) -> anyhow::Result<Vec<Ticket<'_>>> {
     let mut rng = ChaCha8Rng::seed_from_u64(HAPPY_PATH_SEED);
+    // Lists every person outside the tenant as an organisation name and a person name
     let customers: Vec<(&str, &str)> = setup
         .org
         .iter()
@@ -431,6 +539,7 @@ fn build_happy_path(setup: &Setup) -> anyhow::Result<Vec<Ticket<'_>>> {
                 .map(move |person| (org.name.as_str(), person.name.as_str()))
         })
         .collect();
+    // Lists every ticket type name apart from the one that LKP-02 leaves unused
     let ticket_types: Vec<&str> = setup
         .ticket_type
         .iter()
@@ -438,8 +547,11 @@ fn build_happy_path(setup: &Setup) -> anyhow::Result<Vec<Ticket<'_>>> {
         .filter(|&name| name != UNUSED_TICKET_TYPE)
         .collect();
 
+    // Pairs each ticket with the fields its rules have claimed so far
     let mut packed: Vec<(Ticket<'_>, Vec<Field>)> = Vec::new();
     for rule in HAPPY_PATH_RULES {
+        // Finds the first ticket where the rule claims none of the fields already claimed, or
+        // opens a new ticket where no ticket qualifies
         let fits = packed.iter().position(|(_, claimed)| {
             !rule.fields.iter().any(|field| claimed.contains(field))
         });
@@ -452,17 +564,28 @@ fn build_happy_path(setup: &Setup) -> anyhow::Result<Vec<Ticket<'_>>> {
                 packed.len() - 1
             }
         };
+        // Applies the rule to that ticket and records the fields it claims
         let (ticket, claimed) = &mut packed[index];
         (rule.apply)(ticket);
         claimed.extend_from_slice(rule.fields);
     }
 
+    // Drops the claimed fields, then checks the scenarios that cover every ticket at once
     let tickets: Vec<Ticket<'_>> = packed.into_iter().map(|(ticket, _)| ticket).collect();
     check_happy_path(setup, &tickets)?;
 
     Ok(tickets)
 }
 
+/// Returns a new happy path ticket titled `Test Ticket {number}`, with a matching description.
+///
+/// `rng` picks the person who raises it from `customers` and its ticket type from `ticket_types`.
+/// It also picks a creation time between 1 and 20 January, from 08:00 to 16:00. Every other field
+/// comes from [`Ticket::base`].
+///
+/// # Errors
+///
+/// Returns an error if `customers` or `ticket_types` is empty.
 fn open_ticket<'a>(
     number: usize,
     rng: &mut ChaCha8Rng,
@@ -489,12 +612,18 @@ fn open_ticket<'a>(
 /// Checks the happy path scenarios that describe the whole set of tickets rather than any one of
 /// them. A deleted ticket counts towards none of them.
 ///
+/// Each check looks at a ticket as it stands once the script has applied its changes, using
+/// [`Ticket::find_final_status`] and [`Ticket::find_final_priority`].
+///
 /// # Errors
 ///
-/// Returns an error naming the first scenario that `tickets` fails to realise.
+/// Returns an error that cites the ID of the first scenario `tickets` fails to realise. It also
+/// returns an error if an organisation in `setup` puts more people on extra domains than it has
+/// people.
 fn check_happy_path(setup: &Setup, tickets: &[Ticket<'_>]) -> anyhow::Result<()> {
     let kept: Vec<&Ticket<'_>> = tickets.iter().filter(|ticket| !ticket.is_deleted()).collect();
 
+    // Counts the tickets at each priority, for FLD-03
     let mut priorities = BTreeMap::new();
     for ticket in &kept {
         *priorities.entry(ticket.find_final_priority()).or_insert(0) += 1;
@@ -504,6 +633,8 @@ fn check_happy_path(setup: &Setup, tickets: &[Ticket<'_>]) -> anyhow::Result<()>
         "scenario FLD-03 fails: no two tickets share a priority"
     );
 
+    // Finds every person on an extra domain, for PER-06. `assign_domains` uses a seeded
+    // generator, which picks the same people as the email addresses in the script
     let mut on_extra_domain = BTreeSet::new();
     for org in &setup.org {
         for (person, domain) in org.person.iter().zip(assign_domains(org)?) {
@@ -518,6 +649,7 @@ fn check_happy_path(setup: &Setup, tickets: &[Ticket<'_>]) -> anyhow::Result<()>
         "scenario PER-06 fails: nobody on an extra domain raised a ticket"
     );
 
+    // Checks for a person with no ticket (PER-08) and an organisation with no ticket (PER-09)
     let raised = |org: &str, person: &str| {
         kept.iter()
             .any(|ticket| ticket.org == org && ticket.raised_by == person)
@@ -537,6 +669,8 @@ fn check_happy_path(setup: &Setup, tickets: &[Ticket<'_>]) -> anyhow::Result<()>
         "scenario PER-09 fails: every organisation has a ticket"
     );
 
+    // Checks that every status ends up on a ticket (LKP-01), and that no ticket uses the unused
+    // ticket type (LKP-02)
     for status in &setup.ticket_status {
         ensure!(
             kept.iter()
@@ -551,6 +685,8 @@ fn check_happy_path(setup: &Setup, tickets: &[Ticket<'_>]) -> anyhow::Result<()>
         "scenario LKP-02 fails: a ticket refers to {UNUSED_TICKET_TYPE}"
     );
 
+    // Checks that a kept ticket comes after a deleted one, for CHG-05. Ids follow the order of
+    // `tickets`, meaning the deleted id is a gap only where a higher id survives
     let first_deleted = tickets.iter().position(Ticket::is_deleted);
     let last_kept = tickets.iter().rposition(|ticket| !ticket.is_deleted());
     ensure!(
@@ -561,6 +697,16 @@ fn check_happy_path(setup: &Setup, tickets: &[Ticket<'_>]) -> anyhow::Result<()>
     Ok(())
 }
 
+/// Returns the values of `ticket` as one row of the `INSERT` that [`push_tickets`] appends, with
+/// `ticket_id` as its id.
+///
+/// The values follow the column order of that `INSERT`. The row has the id of each name the ticket
+/// refers to, and `NULL` for a missing closing time or description.
+///
+/// # Errors
+///
+/// Returns an error if `setup` lacks the ticket type, status, organisation or person that `ticket`
+/// refers to.
 fn build_row(setup: &Setup, ticket_id: i32, ticket: &Ticket<'_>) -> anyhow::Result<String> {
     let ticket_type_id = find_id(&setup.ticket_type, "ticket type", ticket.ticket_type)?;
     let status_id = find_id(&setup.ticket_status, "ticket status", ticket.status)?;
@@ -581,6 +727,14 @@ fn build_row(setup: &Setup, ticket_id: i32, ticket: &Ticket<'_>) -> anyhow::Resu
     ))
 }
 
+/// Appends the statement that makes `change` to the ticket with id `ticket_id`.
+///
+/// [`Change::Delete`] appends a `DELETE` of the ticket's row. Every other change appends an
+/// `UPDATE` that sets one column of that row.
+///
+/// # Errors
+///
+/// Returns an error if a [`Change::Status`] refers to a status that `setup` lacks.
 fn push_change(
     script: &mut Script,
     setup: &Setup,
@@ -610,6 +764,12 @@ fn push_change(
     Ok(())
 }
 
+/// Returns the id of the row in `rows` called `name`.
+///
+/// # Errors
+///
+/// Returns an error if no row is called `name`. The message describes the rows as `kind`, such
+/// as "ticket status".
 fn find_id(rows: &[NamedRow], kind: &str, name: &str) -> anyhow::Result<i32> {
     rows.iter()
         .find(|row| row.name == name)
@@ -617,6 +777,15 @@ fn find_id(rows: &[NamedRow], kind: &str, name: &str) -> anyhow::Result<i32> {
         .with_context(|| format!("the setup file has no {kind} called {name}"))
 }
 
+/// Returns the id of the person called `name` in the organisation called `org`.
+///
+/// The function finds the organisation first, since two organisations can each have a person
+/// called `name`.
+///
+/// # Errors
+///
+/// Returns an error if `setup` has no organisation called `org`, or if that organisation has no
+/// person called `name`.
 fn find_person(setup: &Setup, org: &str, name: &str) -> anyhow::Result<i32> {
     setup
         .org
