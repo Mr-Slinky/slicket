@@ -354,7 +354,8 @@ impl<'a> Ticket<'a> {
 /// # Errors
 ///
 /// Returns an error if the setup file lacks the people or ticket types the happy path tickets need,
-/// or if those tickets fail to realise one of their scenarios.
+/// if a happy path ticket refers to an organisation, person, ticket type or status that the setup
+/// file lacks, or if those tickets fail to realise one of their scenarios.
 pub(super) fn find_tickets<'a>(fixture: &str, setup: &'a Setup) -> anyhow::Result<Vec<Ticket<'a>>> {
     match fixture {
         "happy_path_setup" => build_happy_path(setup),
@@ -525,7 +526,8 @@ fn raise_by(ticket: &mut Ticket<'_>, org: &'static str, raised_by: &'static str)
 /// # Errors
 ///
 /// Returns an error if `setup` lists no person outside the tenant or no ticket type besides
-/// [`UNUSED_TICKET_TYPE`], or if [`check_happy_path`] finds a scenario the tickets fail to realise.
+/// [`UNUSED_TICKET_TYPE`]. It also returns an error if [`check_names`] finds a name that `setup`
+/// lacks, or if [`check_happy_path`] finds a scenario the tickets fail to realise.
 fn build_happy_path(setup: &Setup) -> anyhow::Result<Vec<Ticket<'_>>> {
     let mut rng = ChaCha8Rng::seed_from_u64(HAPPY_PATH_SEED);
     // Lists every person outside the tenant as an organisation name and a person name
@@ -570,8 +572,10 @@ fn build_happy_path(setup: &Setup) -> anyhow::Result<Vec<Ticket<'_>>> {
         claimed.extend_from_slice(rule.fields);
     }
 
-    // Drops the claimed fields, then checks the scenarios that cover every ticket at once
+    // Drops the claimed fields, confirms every name the tickets use, then checks the scenarios
+    // that cover every ticket at once
     let tickets: Vec<Ticket<'_>> = packed.into_iter().map(|(ticket, _)| ticket).collect();
+    check_names(setup, &tickets)?;
     check_happy_path(setup, &tickets)?;
 
     Ok(tickets)
@@ -607,6 +611,30 @@ fn open_ticket<'a>(
         description: Some(format!("Description of test ticket {number}")),
         ..Ticket::base(org, raised_by, title)
     })
+}
+
+/// Confirms that `setup` contains every ticket type, status, organisation and person that `tickets`
+/// refer to, including the status in each [`Change::Status`].
+///
+/// [`build_happy_path`] calls this before [`check_happy_path`]. A misspelt name in a rule is then
+/// reported as that name, rather than as a scenario that the tickets fail to realise.
+///
+/// # Errors
+///
+/// Returns an error that gives the first name `setup` lacks.
+fn check_names(setup: &Setup, tickets: &[Ticket<'_>]) -> anyhow::Result<()> {
+    for ticket in tickets {
+        find_id(&setup.ticket_type, "ticket type", ticket.ticket_type)?;
+        find_id(&setup.ticket_status, "ticket status", ticket.status)?;
+        find_person(setup, ticket.org, ticket.raised_by)?;
+        for change in &ticket.changes {
+            if let Change::Status(name) = change {
+                find_id(&setup.ticket_status, "ticket status", name)?;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /// Checks the happy path scenarios that describe the whole set of tickets rather than any one of
