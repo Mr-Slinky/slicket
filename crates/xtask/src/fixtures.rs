@@ -277,20 +277,10 @@ fn push_named_rows(
 /// spaces, replace `{last}`. The function then keeps only the letters, digits, dots and hyphens in
 /// that local part, lowercases it, and appends `@` and `domain`.
 ///
-/// # Examples
-///
-/// A surname of several words joins into one, and an apostrophe drops out:
-///
-/// ```ignore
-/// assert_eq!(
-///     build_email("Pieter van der Merwe", "{first}.{last}", "slicket.com"),
-///     "pieter.vandermerwe@slicket.com"
-/// );
-/// assert_eq!(
-///     build_email("Megan O'Connor", "{first}.{last}", "slicket.com"),
-///     "megan.oconnor@slicket.com"
-/// );
-/// ```
+/// For the pattern `"{first}.{last}"` and the domain `"slicket.com"`, the function returns
+/// `"pieter.vandermerwe@slicket.com"` for `"Pieter van der Merwe"`, joining the words of the
+/// surname into one. It returns `"megan.oconnor@slicket.com"` for `"Megan O'Connor"`, dropping the
+/// apostrophe.
 fn build_email(name: &str, pattern: &str, domain: &str) -> String {
     let mut words = name.split_whitespace();
     let first = words.next().unwrap_or_default();
@@ -308,14 +298,8 @@ fn build_email(name: &str, pattern: &str, domain: &str) -> String {
 /// Returns `text` as a PostgreSQL string literal, wrapped in single quotes with each single quote
 /// inside doubled.
 ///
-/// # Examples
-///
-/// The apostrophe in a surname doubles inside the literal:
-///
-/// ```ignore
-/// assert_eq!(quote("Incident"), "'Incident'");
-/// assert_eq!(quote("O'Connor"), "'O''Connor'");
-/// ```
+/// For example, the function returns `'Incident'` for `"Incident"`. It returns `'O''Connor'` for
+/// `"O'Connor"`, doubling the apostrophe.
 fn quote(text: &str) -> String {
     format!("'{}'", text.replace('\'', "''"))
 }
