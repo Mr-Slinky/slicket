@@ -6,6 +6,7 @@
 //! the same name next to it, ready to run once the migrations have been applied.
 
 use crate::sql::Script;
+use anyhow::Context;
 use serde::Deserialize;
 use std::ffi::OsStr;
 use std::fs;
@@ -41,7 +42,9 @@ const FIXTURES_DIR: &str = "../slicket-store/fixtures";
 pub fn seed_fixtures() -> anyhow::Result<()> {
     for path in find_setup_files()? {
         let sql = build_dml_script(&path)?;
-        fs::write(path.with_extension("sql"), sql)?;
+        let sql_path = path.with_extension("sql");
+        fs::write(&sql_path, sql)
+            .with_context(|| format!("cannot write {}", sql_path.display()))?;
     }
 
     Ok(())
@@ -159,9 +162,10 @@ fn find_setup_files() -> io::Result<Vec<PathBuf>> {
 
 /// Reads the file at `path` and parses it as a [`Setup`].
 fn read_setup(path: &Path) -> anyhow::Result<Setup> {
-    let text = fs::read_to_string(path)?;
+    let text = fs::read_to_string(path)
+        .with_context(|| format!("cannot read {}", path.display()))?;
 
-    Ok(toml::from_str(&text)?)
+    toml::from_str(&text).with_context(|| format!("cannot parse {}", path.display()))
 }
 
 /// Appends an `INSERT` that writes `org` to the `org` table.
