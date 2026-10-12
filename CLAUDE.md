@@ -37,6 +37,13 @@ Slicket is a Cargo workspace. Each crate lives in its own folder under `crates/`
 | Lint every crate  | `cargo clippy --workspace`          |
 | Add a dependency  | `cargo add -p <crate> <dependency>` |
 
+## Tests
+
+The store tests load `crates/slicket-store/fixtures/happy_path_setup.sql`, which `cargo xtask`
+generates. The generator numbers the tickets in the order it builds them, and that order changes
+whenever `HAPPY_PATH_RULES` changes. A store test therefore finds a ticket with a query on its
+columns, such as `WHERE title = 'Printer offline in reception'`, and never by its `ticket_id`.
+
 ## Working with the developer
 
 The developer wants to understand and own every line of Slicket. The developer writes the code, and
