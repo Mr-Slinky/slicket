@@ -111,7 +111,6 @@ person = [
 id = 4
 name = "Karoo Freight"
 domain = "karoofreight.co.za"
-extra_domains = { "gmail.com" = 1, "outlook.com" = 1 }
 email_pattern = "{first}.{last}"
 person = [
     { id = 58, name = "Hendrik Coetzee" },
@@ -186,7 +185,7 @@ person = [
     { id = 127, name = "Jenna Walker" },
     { id = 128, name = "Ayabonga Nqaba" },
     { id = 129, name = "Pierre Theron" },
-    { id = 130, name = "Mbali Hlongwane" },
+    { id = 130, name = "Mbali Hlongwane", domain = "outlook.com" },
     { id = 131, name = "Sunil Bhana" },
     { id = 132, name = "Arno Vermeulen" },
     { id = 133, name = "Lindokuhle Shange" },
@@ -211,7 +210,7 @@ person = [
     { id = 152, name = "Tumelo Mathebula" },
     { id = 153, name = "Duncan Frazer" },
     { id = 154, name = "Khanyisile Dlomo" },
-    { id = 155, name = "Werner Horn" },
+    { id = 155, name = "Werner Horn", domain = "gmail.com" },
     { id = 156, name = "Lesedi Moagi" },
     { id = 157, name = "Zaid Hassiem" },
 ]

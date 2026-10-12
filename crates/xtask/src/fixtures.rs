@@ -6,12 +6,7 @@
 //! the same name next to it, ready to run once the migrations have been applied.
 
 use crate::sql::Script;
-use anyhow::ensure;
-use rand::SeedableRng;
-use rand::rngs::ChaCha8Rng;
-use rand::seq::index;
 use serde::Deserialize;
-use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::fs;
 use std::io;
@@ -42,8 +37,7 @@ const FIXTURES_DIR: &str = "../slicket-store/fixtures";
 /// # Errors
 ///
 /// Returns an error if the fixtures folder or a setup file cannot be read, if a setup file fails to
-/// parse, if an organisation puts more people on extra domains than it has people, or if a SQL file
-/// cannot be written.
+/// parse, or if a SQL file cannot be written.
 pub fn seed_fixtures() -> anyhow::Result<()> {
     for path in find_setup_files()? {
         let sql = build_dml_script(&path)?;
@@ -62,8 +56,7 @@ pub fn seed_fixtures() -> anyhow::Result<()> {
 ///
 /// # Errors
 ///
-/// Returns an error if the file cannot be read or parsed, or if an organisation puts more people
-/// on extra domains than it has people.
+/// Returns an error if the file cannot be read or parsed.
 pub fn build_dml_script(path: &Path) -> anyhow::Result<String> {
     let setup = read_setup(path)?;
     let mut script = Script::default();
@@ -73,7 +66,7 @@ pub fn build_dml_script(path: &Path) -> anyhow::Result<String> {
         if org.id == setup.tenant.org_id {
             push_tenant(&mut script, org);
         }
-        push_people(&mut script, org)?;
+        push_people(&mut script, org);
     }
 
     push_named_rows(
@@ -107,12 +100,22 @@ struct Setup {
     org: Vec<Org>, // Singular to match the key in the setup file
 }
 
-/// One TOML entry that gives an id and a name. Ticket types, ticket statuses and people all take
-/// this shape in the setup file.
+/// One TOML entry that gives an id and a name. Ticket types and ticket statuses take this shape in
+/// the setup file.
 #[derive(Deserialize)]
 struct NamedRow {
     id: i32,
     name: String,
+}
+
+/// One person entry in the `person` list of an `[[org]]` table.
+#[derive(Deserialize)]
+struct Person {
+    id: i32,
+    name: String,
+    /// The email domain this person takes in place of the organisation's `domain`.
+    #[serde(default)]
+    domain: Option<String>,
 }
 
 /// The `[tenant]` table, whose `org_id` identifies the organisation that runs this instance of
@@ -127,16 +130,13 @@ struct Tenant {
 struct Org {
     id: i32,
     name: String,
-    /// The email domain each person takes unless `extra_domains` assigns them another.
+    /// The email domain each person takes unless their entry gives another.
     domain: String,
     /// The local part of each email address, in which `{first}` and `{last}` stand for the
     /// person's first and last names.
     email_pattern: String,
-    /// Each extra domain, mapped to the number of people who take it in place of `domain`.
     #[serde(default)]
-    extra_domains: BTreeMap<String, usize>,
-    #[serde(default)]
-    person: Vec<NamedRow>,
+    person: Vec<Person>,
 }
 
 /// Returns the path of every `.toml` file in the fixtures folder, sorted by path.
@@ -188,21 +188,16 @@ fn push_tenant(script: &mut Script, org: &Org) {
 ///
 /// An organisation with no people adds nothing to the script, since an `INSERT` needs at least
 /// one row.
-///
-/// # Errors
-///
-/// Returns an error if `org` puts more people on extra domains than it has people.
-fn push_people(script: &mut Script, org: &Org) -> anyhow::Result<()> {
+fn push_people(script: &mut Script, org: &Org) {
     if org.person.is_empty() {
-        return Ok(());
+        return;
     }
 
-    let domains = assign_domains(org)?;
     let rows: Vec<String> = org
         .person
         .iter()
-        .zip(domains)
-        .map(|(person, domain)| {
+        .map(|person| {
+            let domain = person.domain.as_deref().unwrap_or(&org.domain);
             let email = build_email(&person.name, &org.email_pattern, domain);
             format!(
                 "{}, {}, {}, {}",
@@ -220,38 +215,6 @@ fn push_people(script: &mut Script, org: &Org) -> anyhow::Result<()> {
             &["person_id", "org_id", "name", "email"],
         )
         .values(&borrow_all(&rows));
-
-    Ok(())
-}
-
-/// Returns one email domain for each person in `org`, in the order `org.person` lists them.
-///
-/// Every person takes `org.domain`, apart from the people picked for `org.extra_domains`. The
-/// function picks those people at random, using a generator seeded with the organisation id. As a
-/// result, every run picks the same people, meaning the fixture comes out identical each time.
-///
-/// # Errors
-///
-/// Returns an error if the counts in `org.extra_domains` add up to more than the number of people.
-fn assign_domains(org: &Org) -> anyhow::Result<Vec<&str>> {
-    let people = org.person.len();
-    let outliers: usize = org.extra_domains.values().sum();
-    ensure!(
-        outliers <= people,
-        "org {} puts {outliers} people on extra domains but has only {people} people",
-        org.id
-    );
-
-    let mut domains = vec![org.domain.as_str(); people];
-    let mut rng = ChaCha8Rng::seed_from_u64(org.id as u64);
-    let mut picked = index::sample(&mut rng, people, outliers).into_iter();
-    for (domain, count) in &org.extra_domains {
-        for person in picked.by_ref().take(*count) {
-            domains[person] = domain;
-        }
-    }
-
-    Ok(domains)
 }
 
 /// Appends one `INSERT` that writes every row in `named_rows` to `table_name`, with the id in
@@ -367,24 +330,5 @@ mod tests {
         let actual = quote("O'Connor");
 
         assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn test_assign_domains_with_more_outliers_than_people_returns_error() {
-        let org = Org {
-            id: 1,
-            name: "Karoo Freight".to_owned(),
-            domain: "karoofreight.co.za".to_owned(),
-            email_pattern: "{first}.{last}".to_owned(),
-            extra_domains: BTreeMap::from([("gmail.com".to_owned(), 2)]),
-            person: vec![NamedRow {
-                id: 1,
-                name: "Werner Horn".to_owned(),
-            }],
-        };
-
-        let result = assign_domains(&org);
-
-        assert!(result.is_err());
     }
 }

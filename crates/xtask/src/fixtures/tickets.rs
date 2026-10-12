@@ -25,7 +25,7 @@
 //! which needs every status on some ticket. [`check_happy_path`] confirms those once the rules
 //! have been applied, and the build fails if one of them is unmet.
 
-use super::{NamedRow, Setup, assign_domains, borrow_all, quote};
+use super::{NamedRow, Setup, borrow_all, quote};
 use crate::sql::Script;
 use anyhow::{Context, ensure};
 use rand::rngs::ChaCha8Rng;
@@ -617,9 +617,7 @@ fn open_ticket<'a>(
 ///
 /// # Errors
 ///
-/// Returns an error that cites the ID of the first scenario `tickets` fails to realise. It also
-/// returns an error if an organisation in `setup` puts more people on extra domains than it has
-/// people.
+/// Returns an error that cites the ID of the first scenario `tickets` fails to realise.
 fn check_happy_path(setup: &Setup, tickets: &[Ticket<'_>]) -> anyhow::Result<()> {
     let kept: Vec<&Ticket<'_>> = tickets.iter().filter(|ticket| !ticket.is_deleted()).collect();
 
@@ -633,20 +631,19 @@ fn check_happy_path(setup: &Setup, tickets: &[Ticket<'_>]) -> anyhow::Result<()>
         "scenario FLD-03 fails: no two tickets share a priority"
     );
 
-    // Finds every person on an extra domain, for PER-06. `assign_domains` uses a seeded
-    // generator, which picks the same people as the email addresses in the script
-    let mut on_extra_domain = BTreeSet::new();
-    for org in &setup.org {
-        for (person, domain) in org.person.iter().zip(assign_domains(org)?) {
-            if domain != org.domain {
-                on_extra_domain.insert((org.name.as_str(), person.name.as_str()));
+    // Finds every Karoo Freight person whose entry gives the domain gmail.com, for PER-06
+    let mut on_gmail = BTreeSet::new();
+    for org in setup.org.iter().filter(|org| org.name == "Karoo Freight") {
+        for person in &org.person {
+            if person.domain.as_deref() == Some("gmail.com") {
+                on_gmail.insert((org.name.as_str(), person.name.as_str()));
             }
         }
     }
     ensure!(
         kept.iter()
-            .any(|ticket| on_extra_domain.contains(&(ticket.org, ticket.raised_by))),
-        "scenario PER-06 fails: nobody on an extra domain raised a ticket"
+            .any(|ticket| on_gmail.contains(&(ticket.org, ticket.raised_by))),
+        "scenario PER-06 fails: nobody in Karoo Freight on gmail.com raised a ticket"
     );
 
     // Checks for a person with no ticket (PER-08) and an organisation with no ticket (PER-09)
